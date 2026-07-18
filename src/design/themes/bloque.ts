@@ -60,4 +60,10 @@ export const bloque: ThemeDefinition = {
   // Formas geométricas duras — esquinas sin redondear, no píldoras.
   radii: { pill: 0, chipCorner: 0, brandMark: 0 },
   motif: "hardShapes",
+  // Overlay plano casi negro, más denso que el de Corriente (0.85 vs 0.78):
+  // el lima solo funciona a máximo contraste, así que no alcanza con
+  // "atenuar" la foto — hay que dejarla casi monocromática, visible como
+  // textura/escena pero sin que su brillo o color compita con el acento.
+  // Con foto clara/luminosa esta densidad es la que evita que el lima vibre.
+  photoOverlay: { mode: "flat", flatColor: "rgba(10,10,10,0.85)" },
 };
