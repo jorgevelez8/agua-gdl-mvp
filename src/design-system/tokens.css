@@ -11,7 +11,8 @@
      puro — DESIGN.md pide "aire" (Apple) sin caer en el default gris.
      El fondo es un gradiente muy suave, no un plano (DESIGN.md §3). */
   --color-bg: #fafafa;
-  --bg-gradient: linear-gradient(180deg, #fafafa 0%, #f4f7fc 100%);
+  --color-bg-soft: #f4f7fc;
+  --bg-gradient: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
   --color-surface: #ffffff;
   --color-border: #e3e8f0;
 
@@ -29,6 +30,7 @@
   /* Glow ambiental detrás del contenido protagonista — mismo acento a muy
      baja opacidad, NO cuenta como un segundo color (DESIGN.md §5.3). */
   --color-accent-glow: rgba(13, 104, 250, 0.14);
+  --background-effect-opacity: 0.34;
   --color-on-accent: #ffffff;
   --color-overlay: rgba(20, 24, 31, 0.48);
 

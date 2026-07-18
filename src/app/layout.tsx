@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { VantaGlobeBackground } from "./components/VantaGlobeBackground";
 import "../design-system/tokens.css";
 import "./globals.css";
 
@@ -30,7 +31,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        <VantaGlobeBackground />
+        {children}
+      </body>
     </html>
   );
 }
