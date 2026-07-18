@@ -188,7 +188,7 @@ function Headline({
         style={{
           display: "flex",
           fontFamily: theme.fonts.display.family,
-          fontWeight: 400,
+          fontWeight: theme.fonts.display.primaryWeight,
           fontSize: mainSize,
           lineHeight: lh,
           color: theme.colors.textPrimary,
@@ -201,7 +201,7 @@ function Headline({
         style={{
           display: "flex",
           fontFamily: theme.fonts.display.family,
-          fontWeight: 400,
+          fontWeight: theme.fonts.display.primaryWeight,
           fontSize: accentSize,
           lineHeight: lh,
           // Mayúsculas acentuadas (Ú, Ó, Á...) exceden la caja de line-height
@@ -238,7 +238,7 @@ function HeadlineInline({
         style={{
           display: "flex",
           fontFamily: theme.fonts.display.family,
-          fontWeight: 400,
+          fontWeight: theme.fonts.display.primaryWeight,
           fontSize: size,
           lineHeight: 1.05,
           color: theme.colors.textPrimary,
@@ -252,7 +252,7 @@ function HeadlineInline({
         style={{
           display: "flex",
           fontFamily: theme.fonts.display.family,
-          fontWeight: 400,
+          fontWeight: theme.fonts.display.primaryWeight,
           fontSize: size,
           lineHeight: 1.05,
           color: theme.colors.accent,
@@ -370,9 +370,9 @@ function DataChip({
       >
         {parts ? (
           <>
-            {parts.before ? `${parts.before} ` : ""}
-            <span style={{ display: "flex", fontWeight: 600, color: "#ffffff" }}>{parts.bold}</span>
-            {parts.afterNeedsLeadingSpace ? ` ${parts.after}` : parts.after}
+            {parts.before ? `${parts.before} ` : ""}
+            <span style={{ display: "flex", fontWeight: 600, color: theme.colors.textPrimary }}>{parts.bold}</span>
+            {parts.afterNeedsLeadingSpace ? ` ${parts.after}` : parts.after}
           </>
         ) : (
           dato
@@ -426,6 +426,7 @@ function BrandLockup({ theme, nameSize, noteSize }: { theme: ThemeDefinition; na
           style={{
             display: "flex",
             fontFamily: theme.fonts.display.family,
+            fontWeight: theme.fonts.display.primaryWeight,
             fontSize: nameSize,
             color: theme.colors.textPrimary,
             whiteSpace: "nowrap",
@@ -439,7 +440,6 @@ function BrandLockup({ theme, nameSize, noteSize }: { theme: ThemeDefinition; na
           display: "flex",
           fontSize: noteSize,
           color: theme.colors.textMuted,
-          fontStyle: "italic",
           marginTop: noteSize * 0.5,
           whiteSpace: "nowrap",
         }}

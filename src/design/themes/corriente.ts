@@ -29,6 +29,7 @@ export const corriente: ThemeDefinition = {
     display: {
       family: "Anton",
       files: [{ weight: 400, style: "normal", file: "Anton-Regular.ttf" }],
+      primaryWeight: 400,
     },
     body: {
       family: "Barlow",
@@ -38,6 +39,7 @@ export const corriente: ThemeDefinition = {
         { weight: 600, style: "normal", file: "Barlow-SemiBold.ttf" },
         { weight: 600, style: "italic", file: "Barlow-SemiBoldItalic.ttf" },
       ],
+      primaryWeight: 400,
     },
   },
   type: {

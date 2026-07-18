@@ -1,5 +1,6 @@
 import type { ThemeDefinition, ThemeId } from "./types";
 import { corriente } from "./corriente";
+import { papel } from "./papel";
 
 export const DEFAULT_THEME_ID: ThemeId = "corriente";
 
@@ -22,7 +23,7 @@ export const THEME_META: {
     id: "papel",
     label: "Papel",
     description: "Claro editorial, hueso/blanco, tipografía geométrica limpia.",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "bloque",
@@ -40,6 +41,7 @@ export const THEME_META: {
 
 const THEMES: Partial<Record<ThemeId, ThemeDefinition>> = {
   corriente,
+  papel,
 };
 
 export class TemaNoImplementadoError extends Error {

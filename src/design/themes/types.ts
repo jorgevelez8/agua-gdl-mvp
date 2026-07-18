@@ -11,6 +11,10 @@ export interface ThemeFont {
   /** Nombre usado como fontFamily en los estilos y en fonts[] de ImageResponse. */
   family: string;
   files: ThemeFontFile[];
+  /** Peso principal a usar donde antes había un "400" fijo (Anton solo tiene
+   * esa variante) — temas con fuentes multi-peso (Space Grotesk, etc.)
+   * necesitan poder pedir su propio peso "hero" para el titular/marca. */
+  primaryWeight: ThemeFontFile["weight"];
 }
 
 export interface ThemeColors {
@@ -78,6 +82,10 @@ export interface ThemeDefinition {
   description: string;
   colors: ThemeColors;
   background: ThemeBackground;
+  /** `body` debe traer al menos los pesos 400 (texto normal) y 600 normal
+   * (eyebrow/CTA/resaltado del chip) — esos dos pesos están hardcodeados
+   * en pieceTemplate.tsx en vez de leerse del tema, así que cualquier tema
+   * nuevo tiene que cubrirlos para no romper el font-matching de Satori. */
   fonts: { display: ThemeFont; body: ThemeFont };
   type: ThemeTypeCalibration;
   radii: ThemeRadii;
