@@ -44,7 +44,7 @@ export const THEME_META: {
     label: "Marea",
     description: "Cálido/orgánico, degradado agua-atardecer, formas curvas.",
     implemented: true,
-    photoSupported: false,
+    photoSupported: true,
   },
 ];
 

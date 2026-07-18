@@ -56,4 +56,21 @@ export const marea: ThemeDefinition = {
   // Formas curvas fluidas — todo más redondeado que los demás temas.
   radii: { pill: 999, chipCorner: 1.0, brandMark: 0.5 },
   motif: "organicBlobs",
+  // Overlay en degradado (no plano): reaplica el MISMO degradado agua-
+  // atardecer del fondo (mismo ángulo, mismos 3 stops) por encima de la
+  // foto, en vez de un scrim neutro. Así la foto queda teñida por la
+  // identidad de Marea en vez de competir con ella — se ve "a través del
+  // lente" del tema. Un flat oscuro neutro (como Corriente/Bloque) mataría
+  // justamente lo que hace a Marea reconocible: su gradiente cálido.
+  photoOverlay: {
+    mode: "gradient",
+    gradient: {
+      angle: 150,
+      stops: [
+        { color: "rgba(15,61,82,0.78)", at: "0%" },
+        { color: "rgba(92,58,74,0.78)", at: "48%" },
+        { color: "rgba(122,69,48,0.78)", at: "100%" },
+      ],
+    },
+  },
 };
