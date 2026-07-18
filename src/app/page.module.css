@@ -113,6 +113,25 @@
   gap: var(--space-2);
 }
 
+.campoPrincipal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.encabezadoCampo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.accionAyudaPrincipal {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .etiqueta {
   font-size: var(--font-size-1);
   font-weight: 600;
@@ -245,7 +264,7 @@
   font-family: var(--font-ui);
   font-size: var(--font-size-2);
   font-weight: 600;
-  color: #ffffff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   border: none;
   border-radius: var(--radius);
@@ -280,6 +299,34 @@
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-4);
   cursor: pointer;
+}
+
+.botonAyudaIA {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 0 0 auto;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.botonAyudaIA:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+
+.botonAyudaIA:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 var(--space-1) var(--color-accent-soft);
 }
 
 .botonSecundario:disabled {

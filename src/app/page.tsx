@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, Sparkles } from "lucide-react";
 import styles from "./page.module.css";
+import { AsistenteCampo } from "./components/AsistenteCampo";
 import { Header } from "@/design-system/components/Header";
 import { Chip } from "@/design-system/components/Chip";
 import { THEME_META, DEFAULT_THEME_ID } from "@/design/themes/registry";
 import type { ThemeId } from "@/design/themes/types";
+import type { CampoIAId } from "@/lib/camposAsistidos";
 
 interface PiezaCopy {
   headlineMain: string;
@@ -30,6 +32,21 @@ const FORMATOS: { clave: "post" | "story" | "banner"; etiqueta: string; medida: 
   { clave: "story", etiqueta: "Story", medida: "9:16" },
   { clave: "banner", etiqueta: "Banner", medida: "1200×628" },
 ];
+
+function BotonAyudaIA({
+  onClick,
+  children = "Mejorar con IA",
+}: {
+  onClick: () => void;
+  children?: string;
+}) {
+  return (
+    <button type="button" className={styles.botonAyudaIA} onClick={onClick}>
+      <Sparkles size={14} aria-hidden="true" />
+      {children}
+    </button>
+  );
+}
 
 function urlImagen(
   formato: string,
@@ -56,6 +73,7 @@ export default function Home() {
   const [resultado, setResultado] = useState<RespuestaCampana | null>(null);
   const [loadedSrc, setLoadedSrc] = useState<Record<string, string>>({});
   const [opcionesAbiertas, setOpcionesAbiertas] = useState(false);
+  const [campoIAActivo, setCampoIAActivo] = useState<CampoIAId | null>(null);
 
   const [usarFoto, setUsarFoto] = useState(false);
   const [keyword, setKeyword] = useState("");
@@ -73,6 +91,26 @@ export default function Home() {
   const temaActual = THEME_META.find((t) => t.id === tema);
   const mostrarPanelResultados = cargando || resultado !== null || error !== null;
   const motivoDeshabilitado = !mensaje.trim() ? "Describí tu campaña para continuar." : null;
+  const valoresCamposIA: Record<CampoIAId, string> = {
+    mensaje,
+    link,
+    datosVerificados,
+    nombreOrganizacion,
+    textoEyebrow,
+    keyword,
+  };
+
+  function aplicarPropuestaIA(campo: CampoIAId, propuesta: string) {
+    const setters: Record<CampoIAId, (valor: string) => void> = {
+      mensaje: setMensaje,
+      link: setLink,
+      datosVerificados: setDatosVerificados,
+      nombreOrganizacion: setNombreOrganizacion,
+      textoEyebrow: setTextoEyebrow,
+      keyword: setKeyword,
+    };
+    setters[campo](propuesta);
+  }
 
   function elegirTema(nuevoTema: ThemeId) {
     setTema(nuevoTema);
@@ -150,13 +188,22 @@ export default function Home() {
           <p className={styles.subtitulo}>Transformá una idea en una campaña profesional.</p>
 
           <div className={styles.formulario}>
-            <textarea
-              className={styles.mensajeInput}
-              value={mensaje}
-              onChange={(e) => setMensaje(e.target.value)}
-              placeholder='Ej. "Necesito una campaña para que los vecinos separen la basura reciclable, tono motivador, con un link a nuestro programa"'
-              rows={4}
-            />
+            <div className={styles.campoPrincipal}>
+              <textarea
+                id="mensaje-campana"
+                className={styles.mensajeInput}
+                value={mensaje}
+                onChange={(e) => setMensaje(e.target.value)}
+                placeholder='Ej. "Necesito una campaña para que los vecinos separen la basura reciclable, tono motivador, con un link a nuestro programa"'
+                rows={4}
+                aria-label="Describe tu campaña"
+              />
+              <div className={styles.accionAyudaPrincipal}>
+                <BotonAyudaIA onClick={() => setCampoIAActivo("mensaje")}>
+                  Ayúdame a escribirlo
+                </BotonAyudaIA>
+              </div>
+            </div>
 
             <button
               type="button"
@@ -178,50 +225,72 @@ export default function Home() {
               data-abierto={opcionesAbiertas}
             >
               <div className={styles.disclosureInner}>
-                <label className={styles.campo}>
-                  <span className={styles.etiqueta}>Link / CTA (opcional)</span>
+                <div className={styles.campo}>
+                  <div className={styles.encabezadoCampo}>
+                    <label htmlFor="link-cta" className={styles.etiqueta}>
+                      Link / CTA (opcional)
+                    </label>
+                    <BotonAyudaIA onClick={() => setCampoIAActivo("link")} />
+                  </div>
                   <input
+                    id="link-cta"
                     type="text"
                     value={link}
                     onChange={(e) => setLink(e.target.value)}
                     placeholder="Ej. tuorganizacion.com/campaña"
                   />
-                </label>
+                </div>
 
-                <label className={styles.campo}>
-                  <span className={styles.etiqueta}>
-                    Datos verificados / lineamientos oficiales (opcional)
-                  </span>
+                <div className={styles.campo}>
+                  <div className={styles.encabezadoCampo}>
+                    <label htmlFor="datos-verificados" className={styles.etiqueta}>
+                      Datos verificados / lineamientos oficiales (opcional)
+                    </label>
+                    <BotonAyudaIA onClick={() => setCampoIAActivo("datosVerificados")} />
+                  </div>
                   <textarea
+                    id="datos-verificados"
                     value={datosVerificados}
                     onChange={(e) => setDatosVerificados(e.target.value)}
                     placeholder="Ej. El programa ofrece talleres gratuitos y descuentos en los centros comunitarios. No prometas cosas que no estén aquí."
                     rows={3}
                   />
-                </label>
+                </div>
 
                 <div className={styles.divisor} />
                 <span className={styles.etiquetaGrupo}>Marca del cliente</span>
 
-                <label className={styles.campo}>
-                  <span className={styles.etiqueta}>Nombre de la organización (opcional)</span>
+                <div className={styles.campo}>
+                  <div className={styles.encabezadoCampo}>
+                    <label htmlFor="nombre-organizacion" className={styles.etiqueta}>
+                      Nombre de la organización (opcional)
+                    </label>
+                    <BotonAyudaIA onClick={() => setCampoIAActivo("nombreOrganizacion")} />
+                  </div>
                   <input
+                    id="nombre-organizacion"
                     type="text"
                     value={nombreOrganizacion}
                     onChange={(e) => setNombreOrganizacion(e.target.value)}
                     placeholder="Ej. EcoVerde"
                   />
-                </label>
+                </div>
 
-                <label className={styles.campo}>
-                  <span className={styles.etiqueta}>Texto del eyebrow (opcional)</span>
+                <div className={styles.campo}>
+                  <div className={styles.encabezadoCampo}>
+                    <label htmlFor="texto-eyebrow" className={styles.etiqueta}>
+                      Texto del eyebrow (opcional)
+                    </label>
+                    <BotonAyudaIA onClick={() => setCampoIAActivo("textoEyebrow")} />
+                  </div>
                   <input
+                    id="texto-eyebrow"
                     type="text"
                     value={textoEyebrow}
                     onChange={(e) => setTextoEyebrow(e.target.value)}
                     placeholder="Ej. Campaña de reciclaje responsable"
                   />
-                </label>
+                </div>
                 <span className={styles.textoAyuda}>
                   {marcaConfigurada
                     ? "Se aplica a las piezas generadas — sin nombre configurado, vuelven a mostrar una identidad de ejemplo."
@@ -264,17 +333,21 @@ export default function Home() {
 
                 {usarFoto && resultado && (
                   <div className={styles.fotoControles}>
-                    <label className={styles.campo}>
-                      <span className={styles.etiqueta}>
-                        Palabra clave para la foto (banco: Pexels)
-                      </span>
+                    <div className={styles.campo}>
+                      <div className={styles.encabezadoCampo}>
+                        <label htmlFor="keyword-foto" className={styles.etiqueta}>
+                          Palabra clave para la foto (banco: Pexels)
+                        </label>
+                        <BotonAyudaIA onClick={() => setCampoIAActivo("keyword")} />
+                      </div>
                       <input
+                        id="keyword-foto"
                         type="text"
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder="Ej. water"
                       />
-                    </label>
+                    </div>
                     <button
                       type="button"
                       onClick={() => buscarFotoConKeyword(keyword)}
@@ -378,6 +451,15 @@ export default function Home() {
           </section>
         )}
       </div>
+      {campoIAActivo && (
+        <AsistenteCampo
+          key={campoIAActivo}
+          campo={campoIAActivo}
+          valorActual={valoresCamposIA[campoIAActivo]}
+          onAplicar={(propuesta) => aplicarPropuestaIA(campoIAActivo, propuesta)}
+          onCerrar={() => setCampoIAActivo(null)}
+        />
+      )}
       </div>
     </main>
   );

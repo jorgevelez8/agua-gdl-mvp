@@ -1,6 +1,6 @@
 # Agua GDL — Generador de campaña (MVP para el reto "Las Diez")
 
-Herramienta que, a partir de **un mensaje de campaña** (ej. "hierve el agua antes de consumirla"), genera automáticamente 3 piezas gráficas listas para publicar en redes — **post cuadrado (1:1)**, **story vertical (9:16)** y **banner horizontal** — todas con la misma identidad visual (paleta, tipografía, ícono), usando IA para redactar el copy de cada formato.
+Herramienta que, a partir de **un mensaje de campaña** (ej. "hierve el agua antes de consumirla"), genera automáticamente 3 piezas gráficas listas para publicar en redes — **post cuadrado (1:1)**, **story vertical (9:16)** y **banner horizontal** — todas con la misma identidad visual (paleta, tipografía, ícono), usando IA para redactar el copy de cada formato. Cada campo de texto incluye además un asistente que guía una lluvia de ideas y propone una versión mejorada antes de aplicarla.
 
 **Demo en vivo:** https://agua-gdl-mvp.vercel.app
 **Spec de diseño original:** [`docs/superpowers/specs/2026-07-17-generador-campana-agua-design.md`](docs/superpowers/specs/2026-07-17-generador-campana-agua-design.md)
@@ -66,11 +66,14 @@ src/
 ├── app/
 │   ├── page.tsx                        ← la página única con el formulario (mensaje, tema, toggle de foto)
 │   ├── page.module.css                 ← estilos de esa página
+│   ├── components/AsistenteCampo.tsx   ← diálogo reutilizable de lluvia de ideas y refinamiento con IA
 │   └── api/
 │       ├── generar-campana/route.ts    ← llama a Claude, devuelve el copy de las 3 piezas + una keyword sugerida para la foto
+│       ├── refinar-campo/route.ts       ← mejora un campo a la vez, respetando sus reglas y el prompt del usuario
 │       ├── buscar-foto/route.ts        ← busca una foto en Pexels a partir de esa keyword (editable en la UI)
 │       └── imagen/[formato]/route.tsx  ← renderiza cada pieza a PNG (usa Satori, viene incluido en Next.js — no es una librería aparte)
 ├── lib/
+│   ├── camposAsistidos.ts              ← configuración y guías específicas de cada campo asistido
 │   └── pexels.ts                       ← cliente de la API de Pexels
 ├── design/                             ← EL SISTEMA DE DISEÑO, todo vive acá
 │   ├── campaign.ts                     ← texto de campaña (eyebrow/nombre de marca) — igual en los 4 temas, no es parte del skin visual

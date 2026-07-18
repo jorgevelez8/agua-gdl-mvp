@@ -17,7 +17,7 @@
 
   --color-text: #14181f;
   --color-text-soft: #565f6d;
-  --color-text-muted: #8991a1;
+  --color-text-muted: #667085;
 
   /* Acento: tomado directo del azul de public/brand/logo.png (muestreado
      en la punta del chevron, rgb(13,104,250)) — es EL único color
@@ -29,6 +29,8 @@
   /* Glow ambiental detrás del contenido protagonista — mismo acento a muy
      baja opacidad, NO cuenta como un segundo color (DESIGN.md §5.3). */
   --color-accent-glow: rgba(13, 104, 250, 0.14);
+  --color-on-accent: #ffffff;
+  --color-overlay: rgba(20, 24, 31, 0.48);
 
   /* Semántico — no cuenta como "el acento", uso exclusivo de error. */
   --color-danger: #c0342f;
