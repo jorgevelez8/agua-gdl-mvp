@@ -4,8 +4,12 @@ import { useState } from "react";
 import styles from "./page.module.css";
 
 interface PiezaCopy {
-  titulo: string;
-  copy: string;
+  headlineMain: string;
+  headlineAccent: string;
+  lede: string;
+  dato: string | null;
+  datoResaltado: string | null;
+  cta: string;
 }
 
 interface RespuestaCampana {
@@ -21,10 +25,7 @@ const FORMATOS: { clave: keyof RespuestaCampana; etiqueta: string }[] = [
 ];
 
 function urlImagen(formato: string, pieza: PiezaCopy) {
-  const params = new URLSearchParams({
-    titulo: pieza.titulo,
-    copy: pieza.copy,
-  });
+  const params = new URLSearchParams({ data: JSON.stringify(pieza) });
   return `/api/imagen/${formato}?${params.toString()}`;
 }
 
@@ -120,8 +121,12 @@ export default function Home() {
             return (
               <div key={clave} className={styles.pieza}>
                 <h2>{etiqueta}</h2>
-                <img src={src} alt={pieza.titulo} className={styles.imagen} />
-                <p className={styles.copyTexto}>{pieza.copy}</p>
+                <img
+                  src={src}
+                  alt={`${pieza.headlineMain} ${pieza.headlineAccent}`}
+                  className={styles.imagen}
+                />
+                <p className={styles.copyTexto}>{pieza.lede}</p>
                 <a href={src} download={`${clave}.png`}>
                   Descargar PNG
                 </a>

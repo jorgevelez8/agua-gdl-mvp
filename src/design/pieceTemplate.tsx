@@ -43,9 +43,11 @@ function Icon({
   );
 }
 
-function Ripples({ width }: { width: number }) {
-  const size = (motif.ripples.sizeCqw / 100) * width;
-  const offset = (motif.ripples.offsetCqw / 100) * width;
+/** Textura de marca, contenida a la esquina superior derecha y baja en
+ * opacidad — no debe competir con el titular ni cruzarlo visualmente. */
+function Ripples({ width, boxWidth }: { width: number; boxWidth: number }) {
+  const size = (motif.ripples.sizeCqw / 100) * boxWidth;
+  const offset = (motif.ripples.offsetCqw / 100) * boxWidth;
   return (
     <svg
       viewBox={motif.ripples.viewBox}
@@ -84,7 +86,7 @@ function Wave({ width, containerWidth }: { width: number; containerWidth: number
   );
 }
 
-function Eyebrow({ fontSize }: { fontSize: number }) {
+function Eyebrow({ fontSize, maxWidthPx }: { fontSize: number; maxWidthPx?: number }) {
   return (
     <div
       style={{
@@ -101,6 +103,8 @@ function Eyebrow({ fontSize }: { fontSize: number }) {
         fontSize,
         letterSpacing: fontSize * 0.1,
         textTransform: "uppercase",
+        whiteSpace: "nowrap",
+        ...(maxWidthPx !== undefined ? { maxWidth: maxWidthPx } : {}),
       }}
     >
       <Icon path={icons.drop} size={fontSize * 1.3} color={colors.accentEyebrowText} />
@@ -123,7 +127,7 @@ function Headline({
   lineHeight?: number;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       <span
         style={{
           display: "flex",
@@ -144,6 +148,9 @@ function Headline({
           fontWeight: 400,
           fontSize: accentSize,
           lineHeight,
+          // Mayúsculas acentuadas (Ú, Ó, Á...) exceden la caja de line-height
+          // tan ajustada y pinchan la línea de arriba — este margen las despeja.
+          marginTop: accentSize * 0.16,
           color: colors.accent,
           textTransform: "uppercase",
         }}
@@ -177,7 +184,12 @@ function splitHighlight(dato: string, resaltado: string | null) {
   if (!resaltado) return null;
   const idx = dato.indexOf(resaltado);
   if (idx === -1) return null;
-  return { before: dato.slice(0, idx), bold: resaltado, after: dato.slice(idx + resaltado.length) };
+  // Satori no preserva espacios en el borde entre nodos de texto hermanos
+  // (before / <span> / after), así que se recortan y se reinsertan a mano.
+  const before = dato.slice(0, idx).trim();
+  const afterRaw = dato.slice(idx + resaltado.length).trim();
+  const afterNeedsLeadingSpace = afterRaw.length > 0 && !/^[.,;:!?)]/.test(afterRaw);
+  return { before, bold: resaltado.trim(), after: afterRaw, afterNeedsLeadingSpace };
 }
 
 function DataChip({
@@ -185,23 +197,29 @@ function DataChip({
   datoResaltado,
   fontSize,
   iconSize,
+  maxWidthPx,
 }: {
   dato: string;
   datoResaltado: string | null;
   fontSize: number;
   iconSize: number;
+  maxWidthPx: number;
 }) {
   const parts = splitHighlight(dato, datoResaltado);
+  const gap = fontSize * 0.9;
+  const paddingX = fontSize * 1.1;
+  const textMaxWidth = Math.max(60, maxWidthPx - iconSize - gap - paddingX * 2);
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: fontSize * 0.9,
+        gap,
+        maxWidth: maxWidthPx,
         background: colors.chipBg,
         borderLeft: `${fontSize * 0.26}px solid ${colors.accent}`,
         borderRadius: `0 ${fontSize * 0.7}px ${fontSize * 0.7}px 0`,
-        padding: `${fontSize * 0.95}px ${fontSize * 1.1}px`,
+        padding: `${fontSize * 0.95}px ${paddingX}px`,
         marginTop: fontSize * 1.4,
       }}
     >
@@ -219,12 +237,21 @@ function DataChip({
       >
         <Icon path={icons.leak} size={iconSize * 0.56} color={colors.accent} filled={false} strokeWidth={1.8} />
       </div>
-      <p style={{ display: "flex", fontFamily: "Barlow", fontSize, lineHeight: 1.35, color: colors.textPrimary }}>
+      <p
+        style={{
+          display: "flex",
+          fontFamily: "Barlow",
+          fontSize,
+          lineHeight: 1.35,
+          color: colors.textPrimary,
+          maxWidth: textMaxWidth,
+        }}
+      >
         {parts ? (
           <>
-            {parts.before}
+            {parts.before ? `${parts.before} ` : ""}
             <span style={{ display: "flex", fontWeight: 600, color: "#ffffff" }}>{parts.bold}</span>
-            {parts.after}
+            {parts.afterNeedsLeadingSpace ? ` ${parts.after}` : parts.after}
           </>
         ) : (
           dato
@@ -248,6 +275,7 @@ function CtaButton({ label, fontSize }: { label: string; fontSize: number }) {
         fontSize,
         padding: `${fontSize * 0.85}px ${fontSize * 1.4}px`,
         borderRadius: 999,
+        whiteSpace: "nowrap",
       }}
     >
       {label}
@@ -273,11 +301,20 @@ function BrandLockup({ nameSize, noteSize }: { nameSize: number; noteSize: numbe
         >
           <Icon path={icons.drop} size={nameSize} color={colors.textPrimary} />
         </div>
-        <span style={{ display: "flex", fontFamily: "Anton", fontSize: nameSize, color: colors.textPrimary }}>
+        <span style={{ display: "flex", fontFamily: "Anton", fontSize: nameSize, color: colors.textPrimary, whiteSpace: "nowrap" }}>
           {campaign.brandName}
         </span>
       </div>
-      <span style={{ display: "flex", fontSize: noteSize, color: colors.textMuted, fontStyle: "italic", marginTop: noteSize * 0.5 }}>
+      <span
+        style={{
+          display: "flex",
+          fontSize: noteSize,
+          color: colors.textMuted,
+          fontStyle: "italic",
+          marginTop: noteSize * 0.5,
+          whiteSpace: "nowrap",
+        }}
+      >
         identidad placeholder — demo
       </span>
     </div>
@@ -303,10 +340,8 @@ export function buildVerticalPoster(spec: VerticalSpec, contenido: PiezaContenid
   const headlineAccent = fitAndTruncate(contenido.headlineAccent, spec.headlineAccent);
   const ledeText = truncate(contenido.lede, spec.ledeMaxChars);
   const ledeSize = (3.5 / 100) * spec.width;
-  const ctaSize = fitAndTruncate(contenido.cta, spec.cta).sizePx;
-  const ctaText = fitAndTruncate(contenido.cta, spec.cta).text;
-  const datoSize = (2.7 / 100) * spec.width;
-  const datoText = contenido.dato ? truncate(contenido.dato, spec.datoMaxChars) : null;
+  const ctaFit = fitAndTruncate(contenido.cta, spec.cta);
+  const datoFit = contenido.dato ? fitAndTruncate(contenido.dato, spec.dato) : null;
 
   return (
     <div style={background(spec.width, spec.height)}>
@@ -318,7 +353,7 @@ export function buildVerticalPoster(spec: VerticalSpec, contenido: PiezaContenid
           background: `radial-gradient(120% 90% at 82% 8%, ${colors.glow} 0%, rgba(18,113,138,0) 55%)`,
         }}
       />
-      <Ripples width={spec.width} />
+      <Ripples width={spec.width} boxWidth={spec.width} />
       <Wave width={spec.width} containerWidth={spec.width} />
       <div
         style={{
@@ -330,19 +365,28 @@ export function buildVerticalPoster(spec: VerticalSpec, contenido: PiezaContenid
         }}
       >
         <Eyebrow fontSize={eyebrowSize} />
-        <Headline main={headlineMain.text} accent={headlineAccent.text} mainSize={headlineMain.sizePx} accentSize={headlineAccent.sizePx} />
-        <Lede text={ledeText} fontSize={ledeSize} />
-        {datoText && <DataChip dato={datoText} datoResaltado={contenido.datoResaltado} fontSize={datoSize} iconSize={datoSize * 2.2} />}
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center" }}>
+          <Headline main={headlineMain.text} accent={headlineAccent.text} mainSize={headlineMain.sizePx} accentSize={headlineAccent.sizePx} />
+          <Lede text={ledeText} fontSize={ledeSize} />
+          {datoFit && (
+            <DataChip
+              dato={datoFit.text}
+              datoResaltado={contenido.datoResaltado}
+              fontSize={datoFit.sizePx}
+              iconSize={datoFit.sizePx * 2.2}
+              maxWidthPx={spec.contentWidth}
+            />
+          )}
+        </div>
         <div
           style={{
             display: "flex",
             alignItems: "flex-end",
             justifyContent: "space-between",
-            marginTop: "auto",
             paddingTop: (5 / 100) * spec.width,
           }}
         >
-          <CtaButton label={ctaText} fontSize={ctaSize} />
+          <CtaButton label={ctaFit.text} fontSize={ctaFit.sizePx} />
           <BrandLockup nameSize={(3 / 100) * spec.width} noteSize={(1.7 / 100) * spec.width} />
         </div>
       </div>
@@ -351,14 +395,13 @@ export function buildVerticalPoster(spec: VerticalSpec, contenido: PiezaContenid
 }
 
 export function buildBannerPoster(spec: BannerSpec, contenido: PiezaContenido) {
-  const eyebrowSize = spec.width * 0.02;
+  const eyebrowFit = fitAndTruncate(campaign.eyebrow, spec.eyebrow);
   const headlineMain = fitAndTruncate(contenido.headlineMain, spec.headlineMain);
   const headlineAccent = fitAndTruncate(contenido.headlineAccent, spec.headlineAccent);
   const ledeText = truncate(contenido.lede, spec.ledeMaxChars);
-  const ledeSize = spec.width * 0.026;
+  const ledeSize = spec.width * 0.024;
   const ctaFit = fitAndTruncate(contenido.cta, spec.cta);
-  const datoSize = spec.width * 0.02;
-  const datoText = contenido.dato ? truncate(contenido.dato, spec.datoMaxChars) : null;
+  const datoFit = contenido.dato ? fitAndTruncate(contenido.dato, spec.dato) : null;
 
   return (
     <div style={background(spec.width, spec.height)}>
@@ -367,10 +410,10 @@ export function buildBannerPoster(spec: BannerSpec, contenido: PiezaContenido) {
           display: "flex",
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(120% 140% at 88% 0%, ${colors.glow} 0%, rgba(18,113,138,0) 55%)`,
+          background: `radial-gradient(110% 130% at 92% 0%, ${colors.glow} 0%, rgba(18,113,138,0) 55%)`,
         }}
       />
-      <Ripples width={spec.width * 0.7} />
+      <Ripples width={spec.width} boxWidth={spec.width * 0.62} />
       <div
         style={{
           display: "flex",
@@ -384,21 +427,38 @@ export function buildBannerPoster(spec: BannerSpec, contenido: PiezaContenido) {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", width: spec.leftColWidth }}>
-          <Eyebrow fontSize={eyebrowSize} />
-          <Headline
-            main={headlineMain.text}
-            accent={headlineAccent.text}
-            mainSize={headlineMain.sizePx}
-            accentSize={headlineAccent.sizePx}
-            lineHeight={1}
-          />
-          <Lede text={ledeText} fontSize={ledeSize} maxWidthPct={96} />
+          <Eyebrow fontSize={eyebrowFit.sizePx} />
+          <div style={{ display: "flex", flexDirection: "column", marginTop: spec.padding * 0.4 }}>
+            <Headline
+              main={headlineMain.text}
+              accent={headlineAccent.text}
+              mainSize={headlineMain.sizePx}
+              accentSize={headlineAccent.sizePx}
+              lineHeight={1}
+            />
+            <Lede text={ledeText} fontSize={ledeSize} maxWidthPct={98} />
+          </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", height: "100%", justifyContent: "space-between" }}>
-          <BrandLockup nameSize={spec.width * 0.022} noteSize={spec.width * 0.013} />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            width: spec.rightColWidth,
+            height: "100%",
+            justifyContent: "space-between",
+          }}
+        >
+          <BrandLockup nameSize={spec.width * 0.02} noteSize={spec.width * 0.012} />
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: spec.padding * 0.5 }}>
-            {datoText && (
-              <DataChip dato={datoText} datoResaltado={contenido.datoResaltado} fontSize={datoSize} iconSize={datoSize * 2} />
+            {datoFit && (
+              <DataChip
+                dato={datoFit.text}
+                datoResaltado={contenido.datoResaltado}
+                fontSize={datoFit.sizePx}
+                iconSize={datoFit.sizePx * 2}
+                maxWidthPx={spec.rightColWidth}
+              />
             )}
             <CtaButton label={ctaFit.text} fontSize={ctaFit.sizePx} />
           </div>

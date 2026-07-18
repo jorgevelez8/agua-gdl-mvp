@@ -4,8 +4,12 @@ import Anthropic from "@anthropic-ai/sdk";
 const MODELO = "claude-sonnet-4-6";
 
 interface PiezaCopy {
-  titulo: string;
-  copy: string;
+  headlineMain: string;
+  headlineAccent: string;
+  lede: string;
+  dato: string | null;
+  datoResaltado: string | null;
+  cta: string;
 }
 
 interface RespuestaCampana {
@@ -24,31 +28,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const tieneDatos = Boolean(datosVerificados && datosVerificados.trim());
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const prompt = `Eres el redactor de la campaña de comunicación del Programa Emergente de Calidad del Agua de Guadalajara (con SIAPA). A partir de un mensaje central, adapta el texto a 3 formatos de redes sociales, cada uno con su propio título corto y copy.
+  const prompt = `Eres el redactor de la campaña de comunicación del Programa Emergente de Calidad del Agua de Guadalajara (con SIAPA). A partir de un mensaje central, adapta el contenido a 3 formatos de redes sociales (post, story, banner), cada uno con la misma estructura: un titular corto en dos líneas (la segunda línea es un cierre corto y contundente que se destaca en color de acento), una bajada de una frase, y un botón de acción.
 
 MENSAJE CENTRAL: "${mensaje.trim()}"
-${link ? `LINK/CTA A INCLUIR: ${link.trim()}` : ""}
+${link ? `LINK/CTA A INCLUIR (referencia para el botón, no lo repitas como URL suelta en el texto): ${link.trim()}` : ""}
 ${
-  datosVerificados && datosVerificados.trim()
-    ? `DATOS VERIFICADOS / LINEAMIENTOS OFICIALES (úsalos si son relevantes, NO inventes cifras ni beneficios que no estén aquí):\n${datosVerificados.trim()}`
-    : "No se proveyeron datos verificados adicionales — mantén el copy general y no inventes cifras, programas o beneficios específicos que no estén en el mensaje central."
+  tieneDatos
+    ? `DATOS VERIFICADOS / LINEAMIENTOS OFICIALES (úsalos para el "dato" de cada pieza; NO inventes cifras ni beneficios que no estén aquí):\n${datosVerificados.trim()}`
+    : "No se proveyeron datos verificados. NO inventes cifras, estadísticas ni beneficios específicos — deja \"dato\" y \"datoResaltado\" en null para las 3 piezas."
 }
 
-Formatos a generar:
-- post: Facebook/Instagram feed, tono cercano, 1-2 frases de copy.
-- story: Instagram/Facebook story, tono urgente y directo, copy muy breve (una frase).
-- banner: banner institucional horizontal, tono formal, copy breve tipo titular.
+Para cada formato (post, story, banner) genera:
+- headlineMain: primera línea del titular. Corta (ideal 2-4 palabras).
+- headlineAccent: segunda línea, el cierre/remate (ideal 1-3 palabras, termina en punto o exclamación). Regla: siempre es la frase de acción o urgencia más corta posible que resuma el mensaje — nunca una palabra al azar del headline, es su propia frase de cierre.
+- lede: una frase de apoyo (post: hasta ~28 palabras; story: hasta ~12 palabras, más urgente; banner: hasta ~14 palabras, más formal).
+${
+  tieneDatos
+    ? `- dato: una frase corta con el dato verificado aplicado a este formato.
+- datoResaltado: la sub-frase EXACTA dentro de "dato" (cópiala literal) que debe resaltarse en negrita — normalmente la cifra o el beneficio concreto.`
+    : `- dato: null
+- datoResaltado: null`
+}
+- cta: texto de botón, máximo 3 palabras, imperativo (ej. "Reportar fuga", "Más información").
 
-Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta forma exacta:
-{"post": {"titulo": "...", "copy": "..."}, "story": {"titulo": "...", "copy": "..."}, "banner": {"titulo": "...", "copy": "..."}}`;
+Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exacta:
+{"post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": ${tieneDatos ? '"..."' : "null"}, "datoResaltado": ${tieneDatos ? '"..."' : "null"}, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
 
   let respuestaTexto: string;
   try {
     const mensajeRespuesta = await anthropic.messages.create({
       model: MODELO,
-      max_tokens: 1024,
+      max_tokens: 1536,
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -76,6 +89,15 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta forma ex
       { error: "La respuesta generada no tuvo el formato esperado. Intenta de nuevo." },
       { status: 502 }
     );
+  }
+
+  // Defensa en profundidad: el chip de dato verificado solo puede existir si el
+  // usuario proveyó datos — no confiar únicamente en que el prompt se respete.
+  if (!tieneDatos) {
+    for (const pieza of [datos.post, datos.story, datos.banner]) {
+      pieza.dato = null;
+      pieza.datoResaltado = null;
+    }
   }
 
   return NextResponse.json(datos);

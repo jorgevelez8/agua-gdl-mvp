@@ -1,12 +1,16 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { readFileSync } from "fs";
+import path from "path";
 import { buildVerticalPoster, buildBannerPoster, PiezaContenido } from "@/design/pieceTemplate";
 import { postSpec, storySpec, bannerSpec } from "@/design/layoutSpecs";
 
-export const runtime = "edge";
-
-async function loadFont(path: string): Promise<ArrayBuffer> {
-  return fetch(new URL(path, import.meta.url)).then((res) => res.arrayBuffer());
+// Node.js runtime (no edge): necesitamos `fs` para leer las fuentes locales
+// desde /public — más confiable en dev/Windows que fetch(new URL(..., import.meta.url)).
+function loadFont(filename: string): ArrayBuffer {
+  const buf = readFileSync(path.join(process.cwd(), "public", "fonts", filename));
+  const uint8 = new Uint8Array(buf);
+  return uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength) as ArrayBuffer;
 }
 
 function parseContenido(raw: string | null): PiezaContenido {
@@ -36,13 +40,11 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const contenido = parseContenido(searchParams.get("data"));
 
-  const [anton, barlowRegular, barlowMedium, barlowSemiBold, barlowSemiBoldItalic] = await Promise.all([
-    loadFont("../../../../assets/fonts/Anton-Regular.ttf"),
-    loadFont("../../../../assets/fonts/Barlow-Regular.ttf"),
-    loadFont("../../../../assets/fonts/Barlow-Medium.ttf"),
-    loadFont("../../../../assets/fonts/Barlow-SemiBold.ttf"),
-    loadFont("../../../../assets/fonts/Barlow-SemiBoldItalic.ttf"),
-  ]);
+  const anton = loadFont("Anton-Regular.ttf");
+  const barlowRegular = loadFont("Barlow-Regular.ttf");
+  const barlowMedium = loadFont("Barlow-Medium.ttf");
+  const barlowSemiBold = loadFont("Barlow-SemiBold.ttf");
+  const barlowSemiBoldItalic = loadFont("Barlow-SemiBoldItalic.ttf");
 
   const fonts = [
     { name: "Anton", data: anton, weight: 400 as const, style: "normal" as const },
