@@ -102,26 +102,24 @@ export default function Home() {
           />
         </label>
 
-        <div className={styles.temaSelector}>
-          <span className={styles.temaLabel}>Tema visual</span>
-          <div className={styles.temaOpciones}>
+        <label>
+          Tema visual
+          <select
+            value={tema}
+            onChange={(e) => setTema(e.target.value as ThemeId)}
+            className={styles.temaSelect}
+          >
             {THEME_META.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => t.implemented && setTema(t.id)}
-                disabled={!t.implemented}
-                className={`${styles.temaCard} ${tema === t.id ? styles.temaCardActiva : ""}`}
-                title={t.implemented ? t.description : `${t.description} (próximamente)`}
-              >
-                <span className={styles.temaNombre}>{t.label}</span>
-                <span className={styles.temaDescripcion}>
-                  {t.implemented ? t.description : "Próximamente"}
-                </span>
-              </button>
+              <option key={t.id} value={t.id} disabled={!t.implemented}>
+                {t.label}
+                {!t.implemented ? " — próximamente" : ""}
+              </option>
             ))}
-          </div>
-        </div>
+          </select>
+        </label>
+        <p className={styles.temaDescripcion}>
+          {THEME_META.find((t) => t.id === tema)?.description}
+        </p>
 
         <button onClick={generar} disabled={cargando || !mensaje.trim()}>
           {cargando ? "Generando…" : "Generar piezas"}
