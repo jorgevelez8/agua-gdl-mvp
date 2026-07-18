@@ -19,17 +19,22 @@ const PRECIOS_POR_MILLON: Record<string, { input: number; output: number }> = {
   "claude-sonnet-5": { input: 2, output: 10 },
 };
 
-const KEYWORD_POR_DEFECTO = "water";
+const KEYWORD_POR_DEFECTO = "community";
 
 // Parte FIJA del prompt — idéntica en cada llamada, candidata a
-// cache_control. La parte variable (mensaje del usuario, link, datos
-// verificados) vive en el mensaje de "user", nunca acá.
-const SYSTEM_PROMPT = `Eres el redactor de la campaña de comunicación del Programa Emergente de Calidad del Agua de Guadalajara (con SIAPA). A partir de un mensaje central, adaptas el contenido a 3 formatos de redes sociales (post, story, banner), cada uno con la misma estructura: un titular corto en dos líneas (la segunda línea es un cierre corto y contundente que se destaca en color de acento), una bajada de una frase, y un botón de acción.
+// cache_control. La parte variable (mensaje del usuario, organización,
+// eyebrow, link, datos verificados) vive en el mensaje de "user", nunca
+// acá. El rol es genérico a propósito: la herramienta la puede usar
+// cualquier organización de cualquier rubro, no solo campañas de agua
+// (ver DESIGN.md §1 y la config de marca en campaign.ts/page.tsx) — nada
+// de Guadalajara, SIAPA ni agua hardcodeado en ningún lado de este texto.
+const SYSTEM_PROMPT = `Sos redactor/a de campañas de comunicación digital. A partir de un mensaje central y el contexto de qué organización lo publica, adaptás el contenido a 3 formatos de redes sociales (post, story, banner), cada uno con la misma estructura: un titular corto en dos líneas (la segunda línea es un cierre corto y contundente que se destaca en color de acento), una bajada de una frase, y un botón de acción.
 
 REGLAS DE INTERPRETACIÓN DEL MENSAJE CENTRAL (puede venir como una descripción libre, no como una línea ya pulida — separá lo siguiente en vez de copiarlo tal cual):
 1. Si el mensaje incluye instrucciones sobre TONO o ESTILO (ej. "que sea urgente pero no alarmista"), aplicalas a cómo escribís — nunca las repitas como texto literal en el titular ni en la bajada.
 2. Si el mensaje menciona una URL o un sitio web, usala SOLO como referencia para el "cta" — no la repitas como URL suelta dentro de headlineMain, headlineAccent ni lede.
 3. Si el mensaje menciona una cifra, estadística o dato oficial concreto, ese es el candidato para "dato"/"datoResaltado" — no lo dejes perdido únicamente dentro de la bajada.
+4. El contexto de ORGANIZACIÓN y EYEBROW (más abajo) es quién habla y en qué marco — no inventes datos, lugares ni cifras a partir de ellos, y no menciones ninguna ciudad, institución o tema que no esté en el MENSAJE CENTRAL, la ORGANIZACIÓN o el EYEBROW.
 
 Para cada formato (post, story, banner) generá:
 - headlineMain: primera línea del titular. Corta (ideal 2-4 palabras).
@@ -40,8 +45,8 @@ Para cada formato (post, story, banner) generá:
 - cta: texto de botón, máximo 3 palabras, imperativo (ej. "Reportar fuga", "Más información").
 
 Además, generá UNA sola vez (no por formato):
-- keyword: 1-2 palabras EN INGLÉS que describan el sujeto fotografiable más literal del mensaje (ej. "hierve el agua" → "boiling water"; "reportá fugas" → "water leak"; "cuida el acuífero" → "aquifer"). Es para buscar una foto de banco de imágenes — tiene que ser un objeto o escena concreta, no un concepto abstracto. Si el mensaje no da pie a nada fotografiable concreto, usá "${KEYWORD_POR_DEFECTO}".
-- linkDetectado: si el MENSAJE CENTRAL menciona una URL, dominio o sitio web (con o sin "http"/"www"), devolvela tal como aparece (ej. "agua.jalisco.gob.mx/reporta"). Si no se menciona ninguna, null. Si ya hay un LINK/CTA EXPLÍCITO en el mensaje de abajo, repetí ese mismo valor acá.
+- keyword: 1-2 palabras EN INGLÉS que describan el sujeto fotografiable más literal del mensaje (ej. "separá la basura reciclable" → "recycling bin"; "revisa el semáforo antes de cruzar" → "traffic light"; "vacuná a tu mascota" → "veterinarian appointment"). Es para buscar una foto de banco de imágenes — tiene que ser un objeto o escena concreta, no un concepto abstracto. Si el mensaje no da pie a nada fotografiable concreto, usá "${KEYWORD_POR_DEFECTO}".
+- linkDetectado: si el MENSAJE CENTRAL menciona una URL, dominio o sitio web (con o sin "http"/"www"), devolvela tal como aparece. Si no se menciona ninguna, null. Si ya hay un LINK/CTA EXPLÍCITO en el mensaje de abajo, repetí ese mismo valor acá.
 
 Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exacta:
 {"keyword": "...", "linkDetectado": "..." o null, "post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": "..." o null, "datoResaltado": "..." o null, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
@@ -86,7 +91,7 @@ function logUsoYCosto(modelo: string, usage: { input_tokens: number; output_toke
 }
 
 export async function POST(req: NextRequest) {
-  const { mensaje, link, datosVerificados } = await req.json();
+  const { mensaje, link, datosVerificados, nombreOrganizacion, textoEyebrow } = await req.json();
 
   if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
     return NextResponse.json(
@@ -105,8 +110,17 @@ export async function POST(req: NextRequest) {
   const tieneDatos = tieneDatosExplicitos || contieneCifraEnMensaje;
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+  const organizacionTrim = (nombreOrganizacion || "").trim();
+  const eyebrowTrim = (textoEyebrow || "").trim();
+
   // Parte VARIABLE del prompt — distinta en cada llamada, nunca cacheada.
-  const promptUsuario = `MENSAJE CENTRAL: "${mensaje.trim()}"
+  // ORGANIZACIÓN/EYEBROW vienen de la config de marca del cliente (misma
+  // fuente que ve pieceTemplate.tsx) — es contexto de quién habla, no
+  // texto fijo: sin esto, nada en el prompt sabe de qué organización o
+  // rubro se trata.
+  const promptUsuario = `ORGANIZACIÓN: ${organizacionTrim || "sin especificar"}
+EYEBROW A USAR EN LA PIEZA: ${eyebrowTrim || "sin especificar"}
+MENSAJE CENTRAL: "${mensaje.trim()}"
 ${link ? `LINK/CTA EXPLÍCITO A INCLUIR (además de cualquier link que ya menciones dentro del MENSAJE CENTRAL): ${link.trim()}` : ""}
 ${
   tieneDatosExplicitos

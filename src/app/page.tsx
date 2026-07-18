@@ -31,9 +31,18 @@ const FORMATOS: { clave: "post" | "story" | "banner"; etiqueta: string; medida: 
   { clave: "banner", etiqueta: "Banner", medida: "1200×628" },
 ];
 
-function urlImagen(formato: string, pieza: PiezaCopy, tema: ThemeId, foto: string | null) {
+function urlImagen(
+  formato: string,
+  pieza: PiezaCopy,
+  tema: ThemeId,
+  foto: string | null,
+  marcaNombre: string,
+  marcaEyebrow: string
+) {
   const params = new URLSearchParams({ data: JSON.stringify(pieza), tema });
   if (foto) params.set("foto", foto);
+  if (marcaNombre.trim()) params.set("marcaNombre", marcaNombre.trim());
+  if (marcaEyebrow.trim()) params.set("marcaEyebrow", marcaEyebrow.trim());
   return `/api/imagen/${formato}?${params.toString()}`;
 }
 
@@ -53,6 +62,13 @@ export default function Home() {
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [buscandoFoto, setBuscandoFoto] = useState(false);
   const [fotoError, setFotoError] = useState<string | null>(null);
+
+  // Marca del cliente (DESIGN.md §1) — configurable, sin persistencia. Sin
+  // nombre, las piezas caen a la identidad neutra de campaign.ts con su
+  // aviso de placeholder; con nombre, el aviso desaparece.
+  const [nombreOrganizacion, setNombreOrganizacion] = useState("");
+  const [textoEyebrow, setTextoEyebrow] = useState("");
+  const marcaConfigurada = nombreOrganizacion.trim().length > 0;
 
   const temaActual = THEME_META.find((t) => t.id === tema);
   const mostrarPanelResultados = cargando || resultado !== null || error !== null;
@@ -98,7 +114,7 @@ export default function Home() {
       const res = await fetch("/api/generar-campana", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje, link, datosVerificados }),
+        body: JSON.stringify({ mensaje, link, datosVerificados, nombreOrganizacion, textoEyebrow }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -126,7 +142,7 @@ export default function Home() {
     <main className={styles.pagina}>
       <div className={styles.glow} aria-hidden="true" />
       <div className={styles.contenido}>
-      <Header proyecto="Agua Guadalajara" />
+      <Header proyecto={marcaConfigurada ? nombreOrganizacion.trim() : "Sin marca configurada"} />
 
       <div className={mostrarPanelResultados ? styles.layoutConResultados : styles.layoutInicial}>
         <section className={styles.panelFormulario}>
@@ -138,7 +154,7 @@ export default function Home() {
               className={styles.mensajeInput}
               value={mensaje}
               onChange={(e) => setMensaje(e.target.value)}
-              placeholder='Ej. "Necesito una campaña urgente para que la gente hierva el agua en Guadalajara, tono directo, con un link al sitio del programa"'
+              placeholder='Ej. "Necesito una campaña para que los vecinos separen la basura reciclable, tono motivador, con un link a nuestro programa"'
               rows={4}
             />
 
@@ -168,7 +184,7 @@ export default function Home() {
                     type="text"
                     value={link}
                     onChange={(e) => setLink(e.target.value)}
-                    placeholder="Ej. guadalajara.gob.mx/agua"
+                    placeholder="Ej. tuorganizacion.com/campaña"
                   />
                 </label>
 
@@ -179,10 +195,38 @@ export default function Home() {
                   <textarea
                     value={datosVerificados}
                     onChange={(e) => setDatosVerificados(e.target.value)}
-                    placeholder="Ej. El programa entrega filtros, pastillas de cloro y tinacos en las colonias afectadas. No prometas cosas que no estén aquí."
+                    placeholder="Ej. El programa ofrece talleres gratuitos y descuentos en los centros comunitarios. No prometas cosas que no estén aquí."
                     rows={3}
                   />
                 </label>
+
+                <div className={styles.divisor} />
+                <span className={styles.etiquetaGrupo}>Marca del cliente</span>
+
+                <label className={styles.campo}>
+                  <span className={styles.etiqueta}>Nombre de la organización (opcional)</span>
+                  <input
+                    type="text"
+                    value={nombreOrganizacion}
+                    onChange={(e) => setNombreOrganizacion(e.target.value)}
+                    placeholder="Ej. EcoVerde"
+                  />
+                </label>
+
+                <label className={styles.campo}>
+                  <span className={styles.etiqueta}>Texto del eyebrow (opcional)</span>
+                  <input
+                    type="text"
+                    value={textoEyebrow}
+                    onChange={(e) => setTextoEyebrow(e.target.value)}
+                    placeholder="Ej. Campaña de reciclaje responsable"
+                  />
+                </label>
+                <span className={styles.textoAyuda}>
+                  {marcaConfigurada
+                    ? "Se aplica a las piezas generadas — sin nombre configurado, vuelven a mostrar una identidad de ejemplo."
+                    : "Sin completar, las piezas muestran una identidad de ejemplo con aviso de placeholder."}
+                </span>
 
                 <div className={styles.divisor} />
                 <span className={styles.etiquetaGrupo}>Personalización</span>
@@ -265,11 +309,13 @@ export default function Home() {
             {resultado && !error && (
               <>
                 <h2 className={styles.tituloResultados}>Tus piezas</h2>
-                <p className={styles.notaMarca}>
-                  El lockup dentro de las piezas ("AGUA GDL" + gota) es un placeholder de
-                  demo — se reemplaza por la marca real de cada organización que use la
-                  herramienta.
-                </p>
+                {!marcaConfigurada && (
+                  <p className={styles.notaMarca}>
+                    El lockup dentro de las piezas es un placeholder de demo — configurá el
+                    nombre de tu organización en Opciones avanzadas para reemplazarlo por tu
+                    marca real.
+                  </p>
+                )}
               </>
             )}
 
@@ -291,7 +337,9 @@ export default function Home() {
               <div className={styles.grillaResultados}>
                 {FORMATOS.map(({ clave, etiqueta, medida }, i) => {
                   const pieza = resultado?.[clave];
-                  const src = pieza ? urlImagen(clave, pieza, tema, usarFoto ? fotoUrl : null) : null;
+                  const src = pieza
+                    ? urlImagen(clave, pieza, tema, usarFoto ? fotoUrl : null, nombreOrganizacion, textoEyebrow)
+                    : null;
                   const cargada = !!src && loadedSrc[clave] === src;
 
                   return (

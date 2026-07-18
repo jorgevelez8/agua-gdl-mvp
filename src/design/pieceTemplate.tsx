@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { campaign } from "./campaign";
+import { campaign, type MarcaCliente } from "./campaign";
 import { hexToRgbaTransparent } from "./scale";
 import { fitAndTruncate, truncate } from "./fit";
 import type { VerticalSpec, BannerSpec } from "./layoutSpecs";
@@ -280,7 +280,17 @@ function Motif({ theme, width, boxWidth }: { theme: ThemeDefinition; width: numb
   }
 }
 
-function Eyebrow({ theme, fontSize, maxWidthPx }: { theme: ThemeDefinition; fontSize: number; maxWidthPx?: number }) {
+function Eyebrow({
+  theme,
+  fontSize,
+  maxWidthPx,
+  texto,
+}: {
+  theme: ThemeDefinition;
+  fontSize: number;
+  maxWidthPx?: number;
+  texto: string;
+}) {
   return (
     <div
       style={{
@@ -302,7 +312,7 @@ function Eyebrow({ theme, fontSize, maxWidthPx }: { theme: ThemeDefinition; font
       }}
     >
       <Icon path={ICONS.drop} size={fontSize * 1.3} color={theme.colors.accentEyebrowText} />
-      {campaign.eyebrow}
+      {texto}
     </div>
   );
 }
@@ -546,7 +556,21 @@ function CtaButton({ theme, label, fontSize }: { theme: ThemeDefinition; label: 
   );
 }
 
-function BrandLockup({ theme, nameSize, noteSize }: { theme: ThemeDefinition; nameSize: number; noteSize: number }) {
+function BrandLockup({
+  theme,
+  nameSize,
+  noteSize,
+  brandName,
+  brandNote,
+}: {
+  theme: ThemeDefinition;
+  nameSize: number;
+  noteSize: number;
+  brandName: string;
+  /** null → sin nota: se usa cuando el usuario ya configuró su propia
+   * marca (deja de ser un placeholder de demo). */
+  brandNote: string | null;
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
       <div style={{ display: "flex", alignItems: "center", gap: nameSize * 0.5 }}>
@@ -573,20 +597,22 @@ function BrandLockup({ theme, nameSize, noteSize }: { theme: ThemeDefinition; na
             whiteSpace: "nowrap",
           }}
         >
-          {campaign.brandName}
+          {brandName}
         </span>
       </div>
-      <span
-        style={{
-          display: "flex",
-          fontSize: noteSize,
-          color: theme.colors.textMuted,
-          marginTop: noteSize * 0.5,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {campaign.brandNote}
-      </span>
+      {brandNote && (
+        <span
+          style={{
+            display: "flex",
+            fontSize: noteSize,
+            color: theme.colors.textMuted,
+            marginTop: noteSize * 0.5,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {brandNote}
+        </span>
+      )}
     </div>
   );
 }
@@ -681,8 +707,10 @@ export function buildVerticalPoster(
   theme: ThemeDefinition,
   spec: VerticalSpec,
   contenido: PiezaContenido,
-  foto?: string | null
+  foto?: string | null,
+  marca?: MarcaCliente
 ) {
+  const m = marca ?? campaign;
   const eyebrowSize = (2.15 / 100) * spec.width;
   const headlineMain = fitAndTruncate(contenido.headlineMain, spec.headlineMain);
   const headlineAccent = fitAndTruncate(contenido.headlineAccent, spec.headlineAccent);
@@ -708,7 +736,7 @@ export function buildVerticalPoster(
           padding: spec.padding,
         }}
       >
-        <Eyebrow theme={theme} fontSize={eyebrowSize} />
+        <Eyebrow theme={theme} fontSize={eyebrowSize} texto={m.eyebrow} />
         <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center" }}>
           <Headline
             theme={theme}
@@ -738,7 +766,13 @@ export function buildVerticalPoster(
           }}
         >
           <CtaButton theme={theme} label={ctaFit.text} fontSize={ctaFit.sizePx} />
-          <BrandLockup theme={theme} nameSize={(3 / 100) * spec.width} noteSize={(1.7 / 100) * spec.width} />
+          <BrandLockup
+            theme={theme}
+            nameSize={(3 / 100) * spec.width}
+            noteSize={(1.7 / 100) * spec.width}
+            brandName={m.brandName}
+            brandNote={m.brandNote}
+          />
         </div>
       </div>
     </div>
@@ -749,9 +783,11 @@ export function buildBannerPoster(
   theme: ThemeDefinition,
   spec: BannerSpec,
   contenido: PiezaContenido,
-  foto?: string | null
+  foto?: string | null,
+  marca?: MarcaCliente
 ) {
-  const eyebrowFit = fitAndTruncate(campaign.eyebrow, spec.eyebrow);
+  const m = marca ?? campaign;
+  const eyebrowFit = fitAndTruncate(m.eyebrow, spec.eyebrow);
   const headlineText = `${contenido.headlineMain} ${contenido.headlineAccent}`.trim();
   const headlineFit = fitAndTruncate(headlineText, spec.headline);
   // fitAndTruncate puede truncar el texto combinado — recortamos accent
@@ -789,8 +825,14 @@ export function buildBannerPoster(
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Eyebrow theme={theme} fontSize={eyebrowFit.sizePx} maxWidthPx={spec.eyebrow.maxWidthPx} />
-          <BrandLockup theme={theme} nameSize={spec.brand.nameSize} noteSize={spec.brand.noteSize} />
+          <Eyebrow theme={theme} fontSize={eyebrowFit.sizePx} maxWidthPx={spec.eyebrow.maxWidthPx} texto={m.eyebrow} />
+          <BrandLockup
+            theme={theme}
+            nameSize={spec.brand.nameSize}
+            noteSize={spec.brand.noteSize}
+            brandName={m.brandName}
+            brandNote={m.brandNote}
+          />
         </div>
         <div style={{ display: "flex" }}>
           <HeadlineInline theme={theme} main={headlineMain} accent={headlineAccent} size={headlineFit.sizePx} />

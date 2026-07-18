@@ -5,6 +5,7 @@ import path from "path";
 import { buildVerticalPoster, buildBannerPoster, PiezaContenido } from "@/design/pieceTemplate";
 import { buildVerticalSpec, buildBannerSpec } from "@/design/layoutSpecs";
 import { getTheme, TemaNoImplementadoError } from "@/design/themes/registry";
+import { campaign, type MarcaCliente } from "@/design/campaign";
 import type { ThemeDefinition, ThemeFont } from "@/design/themes/types";
 
 // Node.js runtime (no edge): necesitamos `fs` para leer las fuentes locales
@@ -63,6 +64,22 @@ function parseContenido(raw: string | null): PiezaContenido {
   }
 }
 
+/** Marca del cliente, configurable desde Opciones avanzadas (DESIGN.md §1
+ * — no confundir con la marca del producto, que nunca entra acá). Sin
+ * nombre configurado, cae a los valores neutros de campaign.ts y muestra
+ * el aviso de placeholder; con nombre configurado, el aviso desaparece
+ * porque ya no es una demo. */
+function resolverMarca(searchParams: URLSearchParams): MarcaCliente {
+  const nombre = searchParams.get("marcaNombre")?.trim();
+  const eyebrow = searchParams.get("marcaEyebrow")?.trim();
+  const marcaConfigurada = Boolean(nombre);
+  return {
+    brandName: marcaConfigurada ? nombre! : campaign.brandName,
+    eyebrow: eyebrow ? eyebrow : campaign.eyebrow,
+    brandNote: marcaConfigurada ? null : campaign.brandNote,
+  };
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ formato: string }> }
@@ -70,6 +87,7 @@ export async function GET(
   const { formato } = await params;
   const { searchParams } = new URL(req.url);
   const contenido = parseContenido(searchParams.get("data"));
+  const marca = resolverMarca(searchParams);
   const fotoParam = searchParams.get("foto");
   // Solo se acepta una URL https real — cualquier otra cosa se ignora en
   // silencio (la pieza sale sin foto) en vez de romper el render entero.
@@ -92,7 +110,7 @@ export async function GET(
 
   if (formato === "banner") {
     const spec = buildBannerSpec(theme);
-    return new ImageResponse(buildBannerPoster(theme, spec, contenido, foto), {
+    return new ImageResponse(buildBannerPoster(theme, spec, contenido, foto, marca), {
       width: spec.width,
       height: spec.height,
       fonts,
@@ -105,7 +123,7 @@ export async function GET(
 
   const [width, height] = formato === "story" ? [1080, 1920] : [1080, 1080];
   const spec = buildVerticalSpec(theme, width, height);
-  return new ImageResponse(buildVerticalPoster(theme, spec, contenido, foto), {
+  return new ImageResponse(buildVerticalPoster(theme, spec, contenido, foto, marca), {
     width: spec.width,
     height: spec.height,
     fonts,
