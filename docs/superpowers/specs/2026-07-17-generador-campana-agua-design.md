@@ -14,9 +14,11 @@ Una app de una sola página: el usuario escribe un mensaje de campaña (+ opcion
 ## Alcance (dentro del MVP)
 
 - Un campo de texto: mensaje de campaña. Campo opcional: link/CTA.
-- Una llamada a Claude que adapta el mensaje a 3 formatos (copy corto por pieza, tono ajustado a cada formato).
+- Campo opcional "datos verificados / lineamientos oficiales" (textarea): hechos concretos del programa que el operador pega a mano (ej. nombres reales de los apoyos — filtros, pastillas de cloro, tinacos — o cifras oficiales). **Diferenciador frente a Canva/herramientas genéricas de copy con IA:** el prompt a Claude instruye explícitamente a no inventar cifras ni beneficios que no estén en ese campo, y a señalar si el mensaje pide algo no cubierto por los datos provistos. Así el copy generado es verificable contra la normativa real, no solo "bonito".
+- Una llamada a Claude que adapta el mensaje (+ datos verificados, si los hay) a 3 formatos (copy corto por pieza, tono ajustado a cada formato).
 - Render de 3 imágenes PNG (post, story, banner) vía `next/og` (`ImageResponse`), con plantilla fija por formato: misma paleta de colores institucional (azules del agua) y mismo emblema (ícono de gota de agua, ya que no hay logo oficial provisto).
 - Preview de las 3 piezas en pantalla + botón de descarga PNG por pieza + copy visible para copiar/pegar.
+- Aviso visible en la UI (no solo en este documento): "Paleta y emblema son un placeholder de marca para esta demo — el sistema aplicaría la identidad visual oficial del programa una vez integrado." Esto evita que la demo se lea como si usara el logo real de SIAPA/Guadalajara sin serlo.
 - Manejo de error simple (mensaje + botón reintentar) si falla la llamada a Claude.
 
 ## Fuera de alcance (explícitamente, para no repetir el pivote anterior)
@@ -32,7 +34,7 @@ Una app de una sola página: el usuario escribe un mensaje de campaña (+ opcion
 
 - **Next.js (App Router)**, desplegado en Vercel con el CLI ya autenticado (`jorgevelezsena-6766`).
 - **`/` (página única):** formulario (mensaje + link opcional) → estado de carga → preview de 3 piezas.
-- **`POST /api/generar-campana`:** recibe `{ mensaje, link? }`. Llama a Claude (Anthropic SDK, `ANTHROPIC_API_KEY` reusada de `patron-sistema/.env`) pidiendo JSON:
+- **`POST /api/generar-campana`:** recibe `{ mensaje, link?, datosVerificados? }`. Llama a Claude (Anthropic SDK, `ANTHROPIC_API_KEY` reusada de `patron-sistema/.env`) pidiendo JSON:
   ```json
   {
     "post":   { "titulo": "...", "copy": "..." },
