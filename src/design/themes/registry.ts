@@ -2,6 +2,7 @@ import type { ThemeDefinition, ThemeId } from "./types";
 import { corriente } from "./corriente";
 import { papel } from "./papel";
 import { bloque } from "./bloque";
+import { marea } from "./marea";
 
 export const DEFAULT_THEME_ID: ThemeId = "corriente";
 
@@ -36,7 +37,7 @@ export const THEME_META: {
     id: "marea",
     label: "Marea",
     description: "Cálido/orgánico, degradado agua-atardecer, formas curvas.",
-    implemented: false,
+    implemented: true,
   },
 ];
 
@@ -44,6 +45,7 @@ const THEMES: Partial<Record<ThemeId, ThemeDefinition>> = {
   corriente,
   papel,
   bloque,
+  marea,
 };
 
 export class TemaNoImplementadoError extends Error {

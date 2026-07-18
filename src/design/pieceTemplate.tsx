@@ -56,9 +56,8 @@ function Icon({
 }
 
 // --- Motivo decorativo de fondo ---------------------------------------
-// Cada tema declara un `motif` (waves | hardShapes | organicBlobs | none).
-// "waves" (Corriente) y "hardShapes" (Bloque) implementados; "organicBlobs"
-// (Marea) se agrega cuando se construye ese tema.
+// Cada tema declara un `motif` (waves | hardShapes | organicBlobs | none) —
+// los 4 están implementados (Corriente, Bloque, Marea, Papel/"none").
 
 const WAVES_RIPPLES = {
   radii: [18, 28, 38, 48],
@@ -190,6 +189,66 @@ function HardLine({ theme, width, containerWidth }: { theme: ThemeDefinition; wi
   );
 }
 
+// Un par de manchas orgánicas (blobs) superpuestas — versión fluida/curva
+// del motivo de esquina, en vez de círculos concéntricos o rombos duros.
+// Ambas viven en el MISMO viewBox 0-100 de un solo <svg> (no uno por blob):
+// varios <svg> posicionados por separado rompía el posicionamiento en
+// Satori (terminaban en la esquina opuesta) — mismo patrón que
+// WavesRipples/HardCorner, que sí funcionan.
+const ORGANIC_BLOBS = {
+  sizeCqw: 48,
+  offsetCqw: -16,
+  paths: [
+    { d: "M50,8 C68,6 90,18 92,40 C94,63 78,88 54,90 C32,92 8,76 8,50 C8,26 30,10 50,8 Z", opacity: 0.22 },
+    { d: "M50,14 C64,12 82,24 84,44 C86,62 72,82 52,84 C34,86 16,72 16,50 C16,30 34,16 50,14 Z", opacity: 0.16 },
+  ],
+};
+
+const ORGANIC_WAVE = {
+  viewBox: "0 0 1080 60",
+  // Curva de mayor amplitud que la de Corriente — más sinuosa/fluida.
+  path: "M0 40 C 90 10, 180 10, 270 40 C 360 70, 450 70, 540 40 C 630 10, 720 10, 810 40 C 900 70, 990 70, 1080 40",
+  strokeWidth: 2.5,
+  opacity: 0.4,
+  bottomCqw: 20,
+};
+
+/** Manchas orgánicas superpuestas irradiando desde la esquina superior
+ * derecha — versión curva/fluida del motivo de esquina. */
+function OrganicCorner({ theme, boxWidth }: { theme: ThemeDefinition; boxWidth: number }) {
+  const size = (ORGANIC_BLOBS.sizeCqw / 100) * boxWidth;
+  const offset = (ORGANIC_BLOBS.offsetCqw / 100) * boxWidth;
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      style={{ display: "flex", position: "absolute", top: offset, right: offset }}
+    >
+      {ORGANIC_BLOBS.paths.map((blob, i) => (
+        <path key={i} d={blob.d} fill={theme.colors.accent} opacity={blob.opacity} />
+      ))}
+    </svg>
+  );
+}
+
+/** Onda fluida de mayor amplitud — separa cuerpo de pie, versión "curva" del
+ * motivo de línea. */
+function OrganicWave({ theme, width, containerWidth }: { theme: ThemeDefinition; width: number; containerWidth: number }) {
+  const bottom = (ORGANIC_WAVE.bottomCqw / 100) * containerWidth;
+  return (
+    <svg
+      viewBox={ORGANIC_WAVE.viewBox}
+      width={width}
+      height={(60 / 1080) * width}
+      preserveAspectRatio="none"
+      style={{ display: "flex", position: "absolute", left: 0, bottom, opacity: ORGANIC_WAVE.opacity }}
+    >
+      <path d={ORGANIC_WAVE.path} fill="none" stroke={theme.colors.accent} strokeWidth={ORGANIC_WAVE.strokeWidth} />
+    </svg>
+  );
+}
+
 /** Dispatcher del motivo de fondo según theme.motif. Devuelve los elementos
  * decorativos a superponer (ya posicionados en absoluto). */
 function Motif({ theme, width, boxWidth }: { theme: ThemeDefinition; width: number; boxWidth: number }) {
@@ -208,8 +267,14 @@ function Motif({ theme, width, boxWidth }: { theme: ThemeDefinition; width: numb
           <HardLine theme={theme} width={width} containerWidth={width} />
         </>
       );
-    // "organicBlobs" (Marea) y "none" (Papel) se implementan/usan según
-    // el tema — Papel deliberadamente no dibuja nada acá.
+    case "organicBlobs":
+      return (
+        <>
+          <OrganicCorner theme={theme} boxWidth={boxWidth} />
+          <OrganicWave theme={theme} width={width} containerWidth={width} />
+        </>
+      );
+    // "none" (Papel) deliberadamente no dibuja nada acá — el aire es su firma.
     default:
       return null;
   }
