@@ -76,6 +76,18 @@ export interface ThemeRadii {
   brandMark: number;
 }
 
+/** Capa de legibilidad sobre la foto de fondo opcional — se calibra por
+ * tema (un fondo oscuro y uno claro necesitan tratamientos opuestos). Un
+ * tema sin esta config todavía no soporta foto de fondo — el toggle de la
+ * UI se deshabilita para ese tema hasta que se le agregue la suya. */
+export interface PhotoOverlay {
+  mode: "flat" | "gradient";
+  /** Color con alpha (ej. "rgba(5,32,47,0.78)") para mode="flat". */
+  flatColor?: string;
+  /** Para mode="gradient": oscurece/aclara distinto según la zona. */
+  gradient?: { angle: number; stops: { color: string; at: string }[] };
+}
+
 export interface ThemeDefinition {
   id: ThemeId;
   label: string;
@@ -90,4 +102,5 @@ export interface ThemeDefinition {
   type: ThemeTypeCalibration;
   radii: ThemeRadii;
   motif: MotifKind;
+  photoOverlay?: PhotoOverlay;
 }

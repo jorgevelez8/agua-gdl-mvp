@@ -69,6 +69,43 @@
   margin: -8px 0 0;
 }
 
+.form label.checkboxLabel {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.form label.checkboxLabel input {
+  width: auto;
+}
+
+.fotoControles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+}
+
+.botonSecundario {
+  align-self: flex-start;
+  background: #fff !important;
+  color: #0b5fa5 !important;
+  border: 1px solid #0b5fa5 !important;
+  border-radius: 6px;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botonSecundario:disabled {
+  color: #9db8cc !important;
+  border-color: #9db8cc !important;
+  cursor: not-allowed;
+}
+
 .form button {
   align-self: flex-start;
   background: #0b5fa5;
@@ -155,5 +192,15 @@
 
   .temaDescripcion {
     color: #999;
+  }
+
+  .fotoControles {
+    border-color: #333;
+  }
+
+  .botonSecundario {
+    background: #111 !important;
+    color: #7fc4f2 !important;
+    border-color: #7fc4f2 !important;
   }
 }

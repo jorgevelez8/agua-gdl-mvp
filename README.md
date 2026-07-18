@@ -47,6 +47,8 @@ Sin esto, la generación de copy no funciona (las imágenes sí se pueden ver, p
 
    Este archivo **nunca se sube a git** (está en `.gitignore` a propósito, porque es una credencial). Cada persona que trabaje en el proyecto necesita su propia copia local de este archivo.
 
+4. (Opcional) Para la **foto de fondo** de las piezas necesitás también una key de **Pexels** (gratis, sin aprobación manual — a diferencia de Unsplash) en `PEXELS_API_KEY`, en el mismo `.env.local`. Sacala en https://www.pexels.com/api/. Sin esta key, todo lo demás funciona igual — el toggle de foto solo no va a andar.
+
 ## 4. Correrlo en tu compu
 
 ```bash
@@ -62,24 +64,29 @@ Si ves un error de "No se pudo generar el contenido", revisá que `.env.local` t
 ```
 src/
 ├── app/
-│   ├── page.tsx                        ← la página única con el formulario
+│   ├── page.tsx                        ← la página única con el formulario (mensaje, tema, toggle de foto)
 │   ├── page.module.css                 ← estilos de esa página
 │   └── api/
-│       ├── generar-campana/route.ts    ← llama a Claude, devuelve el copy de las 3 piezas en JSON
+│       ├── generar-campana/route.ts    ← llama a Claude, devuelve el copy de las 3 piezas + una keyword sugerida para la foto
+│       ├── buscar-foto/route.ts        ← busca una foto en Pexels a partir de esa keyword (editable en la UI)
 │       └── imagen/[formato]/route.tsx  ← renderiza cada pieza a PNG (usa Satori, viene incluido en Next.js — no es una librería aparte)
+├── lib/
+│   └── pexels.ts                       ← cliente de la API de Pexels
 ├── design/                             ← EL SISTEMA DE DISEÑO, todo vive acá
-│   ├── brand.json                      ← colores, tipografía, íconos — la fuente de verdad de la identidad visual
-│   ├── design.tokens.css               ← los mismos valores de brand.json, como CSS variables (referencia/documentación)
-│   ├── tokens.ts                       ← brand.json cargado como objeto TS, con un helper de unidades
+│   ├── campaign.ts                     ← texto de campaña (eyebrow/nombre de marca) — igual en los 4 temas, no es parte del skin visual
+│   ├── themes/                         ← un archivo por tema (corriente.ts, papel.ts, bloque.ts, marea.ts) + registry.ts (qué temas existen) + types.ts (el contrato)
+│   ├── scale.ts                        ← helper de unidades (cqw → px)
 │   ├── fit.ts                          ← lógica de "que el texto nunca se desborde" (achica la fuente o trunca)
-│   ├── layoutSpecs.ts                  ← medidas exactas (anchos, tamaños mín/máx) de cada uno de los 3 formatos
-│   └── pieceTemplate.tsx               ← los componentes visuales (título, chip de dato, botón CTA, logo) y cómo se arman en post/story/banner
-public/fonts/                           ← las tipografías Anton y Barlow como archivos .ttf (necesarias para que el renderizador de imágenes las use)
+│   ├── layoutSpecs.ts                  ← medidas exactas (anchos, tamaños mín/máx) de cada uno de los 3 formatos, por tema
+│   └── pieceTemplate.tsx               ← los componentes visuales (título, chip de dato, botón CTA, logo, foto de fondo) y cómo se arman en post/story/banner
+public/fonts/<tema>/                    ← las tipografías de cada tema como archivos .ttf, en su propia carpeta
 ```
 
-**Si vas a cambiar el diseño** (colores, tamaños, textos fijos como el nombre de marca): tocá `src/design/brand.json` y `src/design/layoutSpecs.ts`, no busques estilos sueltos en otros lados — todo se alimenta de ahí.
+**Si vas a cambiar el diseño de un tema** (colores, tipografía, radios): tocá su archivo en `src/design/themes/`, no busques estilos sueltos en otros lados — todo se alimenta de ahí. **Si vas a agregar un tema nuevo**: copiá la estructura de `themes/papel.ts`, descargá sus fuentes a `public/fonts/<id>/`, y registralo en `themes/registry.ts`.
 
-**Si vas a cambiar qué le pedimos a la IA** (el copy que genera): es `src/app/api/generar-campana/route.ts`.
+**Si vas a cambiar qué le pedimos a la IA** (el copy que genera, o cómo arma la keyword de la foto): es `src/app/api/generar-campana/route.ts`.
+
+**Foto de fondo:** hoy solo el tema **Corriente** tiene overlay de legibilidad calibrado (`photoOverlay` en `themes/corriente.ts`) — por eso el toggle está deshabilitado para los otros 3 temas en la UI (`photoSupported: false` en `registry.ts`). Para sumarle foto a otro tema, hay que definirle su propio `photoOverlay` (un fondo claro como Papel necesita un overlay muy distinto a uno oscuro) y marcar `photoSupported: true`.
 
 ## 6. Cómo hacer deploy (mandar cambios a producción)
 
@@ -90,7 +97,7 @@ El proyecto ya está conectado a Vercel bajo mi cuenta. Si querés que puedas de
 
 Si preferís no tocar el deploy y que yo lo suba cuando me pases tus cambios por git, también funciona así — avisame qué preferís.
 
-**Importante:** si trabajás con tu propia cuenta de Vercel en vez de la mía, tenés que configurar la variable `ANTHROPIC_API_KEY` ahí también (Project Settings → Environment Variables) — el `.env.local` de tu compu no viaja al servidor.
+**Importante:** si trabajás con tu propia cuenta de Vercel en vez de la mía, tenés que configurar las variables `ANTHROPIC_API_KEY` y `PEXELS_API_KEY` ahí también (Project Settings → Environment Variables) — el `.env.local` de tu compu no viaja al servidor.
 
 ## 7. Qué falta / dónde meterle mano
 

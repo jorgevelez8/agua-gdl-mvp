@@ -14,30 +14,37 @@ export const THEME_META: {
   label: string;
   description: string;
   implemented: boolean;
+  /** Si el tema ya tiene un photoOverlay calibrado — controla si el toggle
+   * "usar imagen de fondo" de la UI está habilitado para este tema. */
+  photoSupported: boolean;
 }[] = [
   {
     id: "corriente",
     label: "Corriente",
     description: "Teal/cyan profundo, ondas como firma, Anton.",
     implemented: true,
+    photoSupported: true,
   },
   {
     id: "papel",
     label: "Papel",
     description: "Claro editorial, hueso/blanco, tipografía geométrica limpia.",
     implemented: true,
+    photoSupported: false,
   },
   {
     id: "bloque",
     label: "Bloque",
     description: "Alto contraste, negro + color eléctrico, formas duras.",
     implemented: true,
+    photoSupported: false,
   },
   {
     id: "marea",
     label: "Marea",
     description: "Cálido/orgánico, degradado agua-atardecer, formas curvas.",
     implemented: true,
+    photoSupported: false,
   },
 ];
 

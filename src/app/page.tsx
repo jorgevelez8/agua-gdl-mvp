@@ -15,19 +15,21 @@ interface PiezaCopy {
 }
 
 interface RespuestaCampana {
+  keyword: string;
   post: PiezaCopy;
   story: PiezaCopy;
   banner: PiezaCopy;
 }
 
-const FORMATOS: { clave: keyof RespuestaCampana; etiqueta: string }[] = [
+const FORMATOS: { clave: "post" | "story" | "banner"; etiqueta: string }[] = [
   { clave: "post", etiqueta: "Post (1:1)" },
   { clave: "story", etiqueta: "Story (9:16)" },
   { clave: "banner", etiqueta: "Banner" },
 ];
 
-function urlImagen(formato: string, pieza: PiezaCopy, tema: ThemeId) {
+function urlImagen(formato: string, pieza: PiezaCopy, tema: ThemeId, foto: string | null) {
   const params = new URLSearchParams({ data: JSON.stringify(pieza), tema });
+  if (foto) params.set("foto", foto);
   return `/api/imagen/${formato}?${params.toString()}`;
 }
 
@@ -40,10 +42,43 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<RespuestaCampana | null>(null);
 
+  const [usarFoto, setUsarFoto] = useState(false);
+  const [keyword, setKeyword] = useState("");
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [buscandoFoto, setBuscandoFoto] = useState(false);
+  const [fotoError, setFotoError] = useState<string | null>(null);
+
+  const temaActual = THEME_META.find((t) => t.id === tema);
+
+  async function buscarFotoConKeyword(kw: string) {
+    if (!kw.trim()) return;
+    setBuscandoFoto(true);
+    setFotoError(null);
+    try {
+      const res = await fetch("/api/buscar-foto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword: kw }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error desconocido.");
+      }
+      setFotoUrl(data.url);
+    } catch (err) {
+      setFotoError(err instanceof Error ? err.message : "Error desconocido.");
+      setFotoUrl(null);
+    } finally {
+      setBuscandoFoto(false);
+    }
+  }
+
   async function generar() {
     setCargando(true);
     setError(null);
     setResultado(null);
+    setFotoUrl(null);
+    setFotoError(null);
     try {
       const res = await fetch("/api/generar-campana", {
         method: "POST",
@@ -55,6 +90,10 @@ export default function Home() {
         throw new Error(data.error || "Error desconocido.");
       }
       setResultado(data);
+      if (usarFoto && temaActual?.photoSupported) {
+        setKeyword(data.keyword);
+        await buscarFotoConKeyword(data.keyword);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido.");
     } finally {
@@ -106,7 +145,12 @@ export default function Home() {
           Tema visual
           <select
             value={tema}
-            onChange={(e) => setTema(e.target.value as ThemeId)}
+            onChange={(e) => {
+              const nuevoTema = e.target.value as ThemeId;
+              setTema(nuevoTema);
+              const soportaFoto = THEME_META.find((t) => t.id === nuevoTema)?.photoSupported;
+              if (!soportaFoto) setUsarFoto(false);
+            }}
             className={styles.temaSelect}
           >
             {THEME_META.map((t) => (
@@ -117,9 +161,43 @@ export default function Home() {
             ))}
           </select>
         </label>
-        <p className={styles.temaDescripcion}>
-          {THEME_META.find((t) => t.id === tema)?.description}
-        </p>
+        <p className={styles.temaDescripcion}>{temaActual?.description}</p>
+
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            checked={usarFoto}
+            disabled={!temaActual?.photoSupported}
+            onChange={(e) => setUsarFoto(e.target.checked)}
+          />
+          Usar imagen de fondo
+          {!temaActual?.photoSupported && (
+            <span className={styles.temaDescripcion}> (no disponible para este tema todavía)</span>
+          )}
+        </label>
+
+        {usarFoto && resultado && (
+          <div className={styles.fotoControles}>
+            <label>
+              Palabra clave para la foto (banco: Pexels)
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Ej. water"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => buscarFotoConKeyword(keyword)}
+              disabled={buscandoFoto || !keyword.trim()}
+              className={styles.botonSecundario}
+            >
+              {buscandoFoto ? "Buscando…" : "Actualizar foto"}
+            </button>
+            {fotoError && <p className={styles.error}>{fotoError}</p>}
+          </div>
+        )}
 
         <button onClick={generar} disabled={cargando || !mensaje.trim()}>
           {cargando ? "Generando…" : "Generar piezas"}
@@ -139,7 +217,7 @@ export default function Home() {
         <div className={styles.resultados}>
           {FORMATOS.map(({ clave, etiqueta }) => {
             const pieza = resultado[clave];
-            const src = urlImagen(clave, pieza, tema);
+            const src = urlImagen(clave, pieza, tema, usarFoto ? fotoUrl : null);
             return (
               <div key={clave} className={styles.pieza}>
                 <h2>{etiqueta}</h2>

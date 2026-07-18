@@ -615,14 +615,74 @@ function Glow({ theme, position, size }: { theme: ThemeDefinition; position: str
       style={{
         display: "flex",
         position: "absolute",
-        inset: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         background: `radial-gradient(${size} at ${position}, ${theme.colors.glow} 0%, ${hexToRgbaTransparent(theme.colors.glow)} 55%)`,
       }}
     />
   );
 }
 
-export function buildVerticalPoster(theme: ThemeDefinition, spec: VerticalSpec, contenido: PiezaContenido) {
+/** Foto de fondo opcional + su overlay de legibilidad (calibrado por
+ * tema — ver ThemeDefinition.photoOverlay). Si el tema todavía no tiene
+ * overlay configurado, no se dibuja nada (la UI ya deshabilita el toggle
+ * para esos temas, pero esto es la red de seguridad del lado del render). */
+function PhotoBackground({ theme, foto }: { theme: ThemeDefinition; foto: string }) {
+  const overlay = theme.photoOverlay;
+  if (!overlay) return null;
+
+  const overlayBackground =
+    overlay.mode === "flat"
+      ? overlay.flatColor
+      : `linear-gradient(${overlay.gradient?.angle ?? 180}deg, ${(overlay.gradient?.stops ?? [])
+          .map((s) => `${s.color} ${s.at}`)
+          .join(", ")})`;
+
+  // Un solo <div> posicionado envolviendo la foto + su overlay — un
+  // Fragment con 2 elementos posicionados por separado (mismo patrón que
+  // rompió OrganicCorner antes) no se renderiza de forma confiable en Satori.
+  // Además: "inset: 0" no funciona en Satori (el elemento queda con tamaño
+  // cero, invisible) — hay que usar top/left/right/bottom explícitos.
+  return (
+    <div style={{ display: "flex", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+      <img
+        src={foto}
+        alt=""
+        style={{
+          display: "flex",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+        }}
+      />
+      <div
+        style={{
+          display: "flex",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: overlayBackground,
+        }}
+      />
+    </div>
+  );
+}
+
+export function buildVerticalPoster(
+  theme: ThemeDefinition,
+  spec: VerticalSpec,
+  contenido: PiezaContenido,
+  foto?: string | null
+) {
   const eyebrowSize = (2.15 / 100) * spec.width;
   const headlineMain = fitAndTruncate(contenido.headlineMain, spec.headlineMain);
   const headlineAccent = fitAndTruncate(contenido.headlineAccent, spec.headlineAccent);
@@ -633,7 +693,11 @@ export function buildVerticalPoster(theme: ThemeDefinition, spec: VerticalSpec, 
 
   return (
     <div style={backgroundStyle(theme, spec.width, spec.height)}>
-      <Glow theme={theme} position="82% 8%" size="120% 90%" />
+      {foto ? (
+        <PhotoBackground theme={theme} foto={foto} />
+      ) : (
+        <Glow theme={theme} position="82% 8%" size="120% 90%" />
+      )}
       <Motif theme={theme} width={spec.width} boxWidth={spec.width} />
       <div
         style={{
@@ -681,7 +745,12 @@ export function buildVerticalPoster(theme: ThemeDefinition, spec: VerticalSpec, 
   );
 }
 
-export function buildBannerPoster(theme: ThemeDefinition, spec: BannerSpec, contenido: PiezaContenido) {
+export function buildBannerPoster(
+  theme: ThemeDefinition,
+  spec: BannerSpec,
+  contenido: PiezaContenido,
+  foto?: string | null
+) {
   const eyebrowFit = fitAndTruncate(campaign.eyebrow, spec.eyebrow);
   const headlineText = `${contenido.headlineMain} ${contenido.headlineAccent}`.trim();
   const headlineFit = fitAndTruncate(headlineText, spec.headline);
@@ -701,7 +770,11 @@ export function buildBannerPoster(theme: ThemeDefinition, spec: BannerSpec, cont
 
   return (
     <div style={backgroundStyle(theme, spec.width, spec.height)}>
-      <Glow theme={theme} position="98% 0%" size="90% 120%" />
+      {foto ? (
+        <PhotoBackground theme={theme} foto={foto} />
+      ) : (
+        <Glow theme={theme} position="98% 0%" size="90% 120%" />
+      )}
       <Motif theme={theme} width={spec.width} boxWidth={spec.width * 0.4} />
       <div
         style={{

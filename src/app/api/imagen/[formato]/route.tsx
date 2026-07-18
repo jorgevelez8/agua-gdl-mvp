@@ -26,6 +26,24 @@ function loadThemeFonts(theme: ThemeDefinition) {
   return [...fromFont(theme.fonts.display), ...fromFont(theme.fonts.body)];
 }
 
+// Satori no le hace fetch a un <img src="https://..."> por su cuenta de forma
+// confiable en este setup — hay que resolver la foto a bytes ACÁ y pasarle
+// un data URI ya embebido. Si el fetch falla, la pieza sale sin foto en vez
+// de romper el render entero.
+async function resolverFotoComoDataUri(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const buf = await res.arrayBuffer();
+    const base64 = Buffer.from(buf).toString("base64");
+    return `data:${contentType};base64,${base64}`;
+  } catch (err) {
+    console.error("Error resolviendo foto de fondo:", err);
+    return null;
+  }
+}
+
 function parseContenido(raw: string | null): PiezaContenido {
   if (!raw) {
     return { headlineMain: "", headlineAccent: "", lede: "", dato: null, datoResaltado: null, cta: "" };
@@ -52,6 +70,13 @@ export async function GET(
   const { formato } = await params;
   const { searchParams } = new URL(req.url);
   const contenido = parseContenido(searchParams.get("data"));
+  const fotoParam = searchParams.get("foto");
+  // Solo se acepta una URL https real — cualquier otra cosa se ignora en
+  // silencio (la pieza sale sin foto) en vez de romper el render entero.
+  const foto =
+    fotoParam && fotoParam.startsWith("https://")
+      ? await resolverFotoComoDataUri(fotoParam)
+      : null;
 
   let theme;
   try {
@@ -67,7 +92,7 @@ export async function GET(
 
   if (formato === "banner") {
     const spec = buildBannerSpec(theme);
-    return new ImageResponse(buildBannerPoster(theme, spec, contenido), {
+    return new ImageResponse(buildBannerPoster(theme, spec, contenido, foto), {
       width: spec.width,
       height: spec.height,
       fonts,
@@ -80,7 +105,7 @@ export async function GET(
 
   const [width, height] = formato === "story" ? [1080, 1920] : [1080, 1080];
   const spec = buildVerticalSpec(theme, width, height);
-  return new ImageResponse(buildVerticalPoster(theme, spec, contenido), {
+  return new ImageResponse(buildVerticalPoster(theme, spec, contenido, foto), {
     width: spec.width,
     height: spec.height,
     fonts,

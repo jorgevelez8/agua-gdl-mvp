@@ -50,4 +50,10 @@ export const corriente: ThemeDefinition = {
   },
   radii: { pill: 999, chipCorner: 0.7, brandMark: 0.45 },
   motif: "waves",
+  // Overlay oscuro directo (plano, no degradado) — Corriente ya es un tema
+  // oscuro, así que un scrim plano en su propio bgDeep alcanza para
+  // legibilidad sin desentonar con la paleta. Otros temas necesitan su
+  // propio tratamiento (Papel en particular: fondo claro, mismo problema
+  // al revés) — se agregan cuando se implementa cada uno.
+  photoOverlay: { mode: "flat", flatColor: "rgba(5,32,47,0.78)" },
 };

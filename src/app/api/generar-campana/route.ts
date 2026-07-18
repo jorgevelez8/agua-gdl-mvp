@@ -13,10 +13,13 @@ interface PiezaCopy {
 }
 
 interface RespuestaCampana {
+  keyword: string;
   post: PiezaCopy;
   story: PiezaCopy;
   banner: PiezaCopy;
 }
+
+const KEYWORD_POR_DEFECTO = "water";
 
 export async function POST(req: NextRequest) {
   const { mensaje, link, datosVerificados } = await req.json();
@@ -54,8 +57,11 @@ ${
 }
 - cta: texto de botón, máximo 3 palabras, imperativo (ej. "Reportar fuga", "Más información").
 
+Además, generá UNA sola vez (no por formato):
+- keyword: 1-2 palabras EN INGLÉS que describan el sujeto fotografiable más literal del mensaje (ej. "hierve el agua" → "boiling water"; "reportá fugas" → "water leak"; "cuida el acuífero" → "aquifer"). Es para buscar una foto de banco de imágenes — tiene que ser un objeto o escena concreta, no un concepto abstracto. Si el mensaje no da pie a nada fotografiable concreto, usá "${KEYWORD_POR_DEFECTO}".
+
 Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exacta:
-{"post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": ${tieneDatos ? '"..."' : "null"}, "datoResaltado": ${tieneDatos ? '"..."' : "null"}, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
+{"keyword": "...", "post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": ${tieneDatos ? '"..."' : "null"}, "datoResaltado": ${tieneDatos ? '"..."' : "null"}, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
 
   let respuestaTexto: string;
   try {
@@ -98,6 +104,12 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exact
       pieza.dato = null;
       pieza.datoResaltado = null;
     }
+  }
+
+  // Red de seguridad: si Claude no devolvió una keyword usable, no dejar
+  // el campo vacío/roto — cae al término seguro por defecto.
+  if (!datos.keyword || typeof datos.keyword !== "string" || !datos.keyword.trim()) {
+    datos.keyword = KEYWORD_POR_DEFECTO;
   }
 
   return NextResponse.json(datos);
