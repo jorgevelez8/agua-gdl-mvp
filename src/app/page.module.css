@@ -1,8 +1,43 @@
 .pagina {
+  position: relative;
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
   padding: 0 var(--space-6) var(--space-16);
+  overflow: hidden;
+}
+
+/* Glow ambiental muy tenue detrás del contenido protagonista — mismo
+ * acento del producto a baja opacidad, no un color nuevo (DESIGN.md §3/§5.3). */
+.glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1100px;
+  height: 620px;
+  transform: translateX(-50%);
+  /* Varias paradas de color, no dos — un radial de 2 paradas crea un
+   * "anillo" perceptible (Mach band) contra el gradiente plano de fondo. */
+  background: radial-gradient(
+    closest-side,
+    var(--color-accent-glow) 0%,
+    rgba(13, 104, 250, 0.08) 35%,
+    rgba(13, 104, 250, 0.03) 60%,
+    transparent 85%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Envoltorio del contenido real (no el glow) — separado en su propia
+ * clase en vez de un ".pagina > *" genérico: ese selector tenía la MISMA
+ * especificidad que ".glow" y, al venir después en el archivo, le pisaba
+ * el position:absolute con relative — el glow (620px de alto) pasaba a
+ * ocupar espacio de verdad en el flujo y empujaba todo lo demás hacia
+ * abajo esa misma distancia. Root cause del "espacio muerto arriba". */
+.contenido {
+  position: relative;
+  z-index: 1;
 }
 
 /* ---------- Layout: fase inicial vs. fase con resultados ---------- */
@@ -43,10 +78,20 @@
 }
 
 .tituloFormulario {
-  font-size: var(--font-size-3);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: var(--line-height-tight);
+}
+
+/* La pregunta protagonista comparte el tamaño "hero" con el título de
+ * resultados — nunca los dos a la vez con el mismo peso (DESIGN.md §2/§5.2). */
+.layoutInicial .tituloFormulario {
+  font-size: var(--font-size-4);
+}
+
+.layoutConResultados .tituloFormulario {
+  font-size: var(--font-size-3);
 }
 
 .subtitulo {
@@ -89,8 +134,7 @@
 }
 
 .formulario textarea,
-.formulario input[type="text"],
-.temaSelect {
+.formulario input[type="text"] {
   font-family: var(--font-ui);
   font-size: var(--font-size-2);
   color: var(--color-text);
@@ -103,20 +147,15 @@
 }
 
 .formulario textarea:focus,
-.formulario input[type="text"]:focus,
-.temaSelect:focus {
+.formulario input[type="text"]:focus {
   outline: none;
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .mensajeInput {
-  min-height: 84px;
+  min-height: 110px;
   font-size: var(--font-size-2);
-}
-
-.temaSelect {
-  cursor: pointer;
 }
 
 .textoAyuda {
@@ -125,17 +164,62 @@
   line-height: var(--line-height-normal);
 }
 
-.campoCheckbox {
+.chipsFila {
   display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
   gap: var(--space-2);
-  font-size: var(--font-size-2);
+}
+
+/* ---------- Opciones avanzadas (plegadas por defecto) ---------- */
+
+.disclosureToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-text-soft);
+  background: none;
+  border: none;
+  padding: var(--space-1) 0;
+  cursor: pointer;
+}
+
+.disclosureToggle:hover {
   color: var(--color-text);
 }
 
-.campoCheckbox input {
-  margin-top: 3px;
-  accent-color: var(--color-accent);
+.chevron {
+  transition: transform 0.2s ease;
+}
+
+.chevronAbierto {
+  transform: rotate(180deg);
+}
+
+.disclosureWrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.disclosureWrapper[data-abierto="true"] {
+  grid-template-rows: 1fr;
+}
+
+.disclosureInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosureWrapper {
+    transition: none;
+  }
 }
 
 .fotoControles {

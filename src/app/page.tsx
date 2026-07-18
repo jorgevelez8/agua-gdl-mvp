@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown, Download } from "lucide-react";
 import styles from "./page.module.css";
 import { Header } from "@/design-system/components/Header";
+import { Chip } from "@/design-system/components/Chip";
 import { THEME_META, DEFAULT_THEME_ID } from "@/design/themes/registry";
 import type { ThemeId } from "@/design/themes/types";
 
@@ -17,6 +19,7 @@ interface PiezaCopy {
 
 interface RespuestaCampana {
   keyword: string;
+  linkDetectado: string | null;
   post: PiezaCopy;
   story: PiezaCopy;
   banner: PiezaCopy;
@@ -34,20 +37,6 @@ function urlImagen(formato: string, pieza: PiezaCopy, tema: ThemeId, foto: strin
   return `/api/imagen/${formato}?${params.toString()}`;
 }
 
-function IconoDescargar() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M8 1.5v8.25m0 0L4.75 6.5M8 9.75 11.25 6.5M2.5 11.5v1.75c0 .69.56 1.25 1.25 1.25h8.5c.69 0 1.25-.56 1.25-1.25V11.5"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export default function Home() {
   const [mensaje, setMensaje] = useState("");
   const [link, setLink] = useState("");
@@ -57,6 +46,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<RespuestaCampana | null>(null);
   const [loadedSrc, setLoadedSrc] = useState<Record<string, string>>({});
+  const [opcionesAbiertas, setOpcionesAbiertas] = useState(false);
 
   const [usarFoto, setUsarFoto] = useState(false);
   const [keyword, setKeyword] = useState("");
@@ -66,7 +56,13 @@ export default function Home() {
 
   const temaActual = THEME_META.find((t) => t.id === tema);
   const mostrarPanelResultados = cargando || resultado !== null || error !== null;
-  const motivoDeshabilitado = !mensaje.trim() ? "Escribí un mensaje de campaña para continuar." : null;
+  const motivoDeshabilitado = !mensaje.trim() ? "Describí tu campaña para continuar." : null;
+
+  function elegirTema(nuevoTema: ThemeId) {
+    setTema(nuevoTema);
+    const soportaFoto = THEME_META.find((t) => t.id === nuevoTema)?.photoSupported;
+    if (!soportaFoto) setUsarFoto(false);
+  }
 
   async function buscarFotoConKeyword(kw: string) {
     if (!kw.trim()) return;
@@ -109,6 +105,12 @@ export default function Home() {
         throw new Error(data.error || "Error desconocido.");
       }
       setResultado(data);
+      // Igual mecánica que la keyword de foto: automático, con red de
+      // seguridad — solo completa el campo si el usuario no escribió ya
+      // un link propio ahí (no le pisamos lo que haya tipeado a mano).
+      if (data.linkDetectado && !link.trim()) {
+        setLink(data.linkDetectado);
+      }
       if (usarFoto && temaActual?.photoSupported) {
         setKeyword(data.keyword);
         await buscarFotoConKeyword(data.keyword);
@@ -122,109 +124,126 @@ export default function Home() {
 
   return (
     <main className={styles.pagina}>
+      <div className={styles.glow} aria-hidden="true" />
+      <div className={styles.contenido}>
       <Header proyecto="Agua Guadalajara" />
 
       <div className={mostrarPanelResultados ? styles.layoutConResultados : styles.layoutInicial}>
         <section className={styles.panelFormulario}>
-          <h1 className={styles.tituloFormulario}>Generá tus piezas</h1>
-          <p className={styles.subtitulo}>
-            Un mensaje de campaña. Tres piezas gráficas listas para publicar.
-          </p>
+          <h1 className={styles.tituloFormulario}>¿Qué campaña querés crear hoy?</h1>
+          <p className={styles.subtitulo}>Transformá una idea en una campaña profesional.</p>
 
           <div className={styles.formulario}>
-            <label className={styles.campo}>
-              <span className={styles.etiqueta}>Mensaje de campaña *</span>
-              <textarea
-                className={styles.mensajeInput}
-                value={mensaje}
-                onChange={(e) => setMensaje(e.target.value)}
-                placeholder='Ej. "Hierve el agua antes de consumirla mientras dure la alerta"'
-                rows={3}
+            <textarea
+              className={styles.mensajeInput}
+              value={mensaje}
+              onChange={(e) => setMensaje(e.target.value)}
+              placeholder='Ej. "Necesito una campaña urgente para que la gente hierva el agua en Guadalajara, tono directo, con un link al sitio del programa"'
+              rows={4}
+            />
+
+            <button
+              type="button"
+              className={styles.disclosureToggle}
+              onClick={() => setOpcionesAbiertas((v) => !v)}
+              aria-expanded={opcionesAbiertas}
+              aria-controls="opciones-avanzadas"
+            >
+              <ChevronDown
+                size={16}
+                className={`${styles.chevron} ${opcionesAbiertas ? styles.chevronAbierto : ""}`}
               />
-            </label>
+              Opciones avanzadas
+            </button>
 
-            <label className={styles.campo}>
-              <span className={styles.etiqueta}>Link / CTA (opcional)</span>
-              <input
-                type="text"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="Ej. guadalajara.gob.mx/agua"
-              />
-            </label>
-
-            <label className={styles.campo}>
-              <span className={styles.etiqueta}>Datos verificados / lineamientos oficiales (opcional)</span>
-              <textarea
-                value={datosVerificados}
-                onChange={(e) => setDatosVerificados(e.target.value)}
-                placeholder="Ej. El programa entrega filtros, pastillas de cloro y tinacos en las colonias afectadas. No prometas cosas que no estén aquí."
-                rows={3}
-              />
-            </label>
-
-            <div className={styles.divisor} />
-            <span className={styles.etiquetaGrupo}>Personalización</span>
-
-            <label className={styles.campo}>
-              <span className={styles.etiqueta}>Tema visual</span>
-              <select
-                value={tema}
-                onChange={(e) => {
-                  const nuevoTema = e.target.value as ThemeId;
-                  setTema(nuevoTema);
-                  const soportaFoto = THEME_META.find((t) => t.id === nuevoTema)?.photoSupported;
-                  if (!soportaFoto) setUsarFoto(false);
-                }}
-                className={styles.temaSelect}
-              >
-                {THEME_META.map((t) => (
-                  <option key={t.id} value={t.id} disabled={!t.implemented}>
-                    {t.label}
-                    {!t.implemented ? " — próximamente" : ""}
-                  </option>
-                ))}
-              </select>
-              <span className={styles.textoAyuda}>{temaActual?.description}</span>
-            </label>
-
-            <label className={styles.campoCheckbox}>
-              <input
-                type="checkbox"
-                checked={usarFoto}
-                disabled={!temaActual?.photoSupported}
-                onChange={(e) => setUsarFoto(e.target.checked)}
-              />
-              <span>
-                Usar imagen de fondo
-                {!temaActual?.photoSupported && (
-                  <span className={styles.textoAyuda}> — no disponible para este tema todavía</span>
-                )}
-              </span>
-            </label>
-
-            {usarFoto && resultado && (
-              <div className={styles.fotoControles}>
+            <div
+              id="opciones-avanzadas"
+              className={styles.disclosureWrapper}
+              data-abierto={opcionesAbiertas}
+            >
+              <div className={styles.disclosureInner}>
                 <label className={styles.campo}>
-                  <span className={styles.etiqueta}>Palabra clave para la foto (banco: Pexels)</span>
+                  <span className={styles.etiqueta}>Link / CTA (opcional)</span>
                   <input
                     type="text"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="Ej. water"
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    placeholder="Ej. guadalajara.gob.mx/agua"
                   />
                 </label>
-                <button
-                  type="button"
-                  onClick={() => buscarFotoConKeyword(keyword)}
-                  disabled={buscandoFoto || !keyword.trim()}
-                  className={styles.botonSecundario}
-                >
-                  {buscandoFoto ? "Buscando…" : "Actualizar foto"}
-                </button>
-                {fotoError && <p className={styles.error}>{fotoError}</p>}
+
+                <label className={styles.campo}>
+                  <span className={styles.etiqueta}>
+                    Datos verificados / lineamientos oficiales (opcional)
+                  </span>
+                  <textarea
+                    value={datosVerificados}
+                    onChange={(e) => setDatosVerificados(e.target.value)}
+                    placeholder="Ej. El programa entrega filtros, pastillas de cloro y tinacos en las colonias afectadas. No prometas cosas que no estén aquí."
+                    rows={3}
+                  />
+                </label>
+
+                <div className={styles.divisor} />
+                <span className={styles.etiquetaGrupo}>Personalización</span>
+
+                <div className={styles.campo}>
+                  <span className={styles.etiqueta}>Tema visual</span>
+                  <div className={styles.chipsFila}>
+                    {THEME_META.map((t) => (
+                      <Chip
+                        key={t.id}
+                        selected={tema === t.id}
+                        disabled={!t.implemented}
+                        onClick={() => elegirTema(t.id)}
+                        title={!t.implemented ? "Próximamente" : undefined}
+                      >
+                        {t.label}
+                      </Chip>
+                    ))}
+                  </div>
+                  <span className={styles.textoAyuda}>{temaActual?.description}</span>
+                </div>
+
+                <div className={styles.campo}>
+                  <Chip
+                    selected={usarFoto}
+                    disabled={!temaActual?.photoSupported}
+                    onClick={() => setUsarFoto((v) => !v)}
+                  >
+                    Imagen de fondo
+                  </Chip>
+                  {!temaActual?.photoSupported && (
+                    <span className={styles.textoAyuda}>No disponible para este tema todavía.</span>
+                  )}
+                </div>
+
+                {usarFoto && resultado && (
+                  <div className={styles.fotoControles}>
+                    <label className={styles.campo}>
+                      <span className={styles.etiqueta}>
+                        Palabra clave para la foto (banco: Pexels)
+                      </span>
+                      <input
+                        type="text"
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="Ej. water"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => buscarFotoConKeyword(keyword)}
+                      disabled={buscandoFoto || !keyword.trim()}
+                      className={styles.botonSecundario}
+                    >
+                      {buscandoFoto ? "Buscando…" : "Actualizar foto"}
+                    </button>
+                    {fotoError && <p className={styles.error}>{fotoError}</p>}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             <div className={styles.accionPrincipal}>
               <button
@@ -298,7 +317,7 @@ export default function Home() {
                         </span>
                         {pieza && src && (
                           <a href={src} download={`${clave}.png`} className={styles.botonDescargar}>
-                            <IconoDescargar />
+                            <Download size={14} />
                             Descargar
                           </a>
                         )}
@@ -310,6 +329,7 @@ export default function Home() {
             )}
           </section>
         )}
+      </div>
       </div>
     </main>
   );

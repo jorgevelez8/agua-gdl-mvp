@@ -14,6 +14,10 @@ interface PiezaCopy {
 
 interface RespuestaCampana {
   keyword: string;
+  /** Link/URL detectado dentro del mensaje libre — igual mecánica que
+   * keyword: la IA lo extrae, la UI lo muestra editable en el campo
+   * avanzado "Link / CTA" (automático, con red de seguridad). */
+  linkDetectado: string | null;
   post: PiezaCopy;
   story: PiezaCopy;
   banner: PiezaCopy;
@@ -31,18 +35,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const tieneDatos = Boolean(datosVerificados && datosVerificados.trim());
+  const datosVerificadosTrim = (datosVerificados || "").trim();
+  const tieneDatosExplicitos = Boolean(datosVerificadosTrim);
+  // El mensaje ahora puede ser una descripción libre de la campaña entera
+  // (no una línea ya limpia) — puede traer, mezclados en prosa, el link,
+  // el dato duro y hasta instrucciones de tono. Si menciona una cifra,
+  // hay que extraerla de ahí también, no solo del campo separado.
+  const contieneCifraEnMensaje = /\d/.test(mensaje);
+  const tieneDatos = tieneDatosExplicitos || contieneCifraEnMensaje;
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const prompt = `Eres el redactor de la campaña de comunicación del Programa Emergente de Calidad del Agua de Guadalajara (con SIAPA). A partir de un mensaje central, adapta el contenido a 3 formatos de redes sociales (post, story, banner), cada uno con la misma estructura: un titular corto en dos líneas (la segunda línea es un cierre corto y contundente que se destaca en color de acento), una bajada de una frase, y un botón de acción.
 
 MENSAJE CENTRAL: "${mensaje.trim()}"
-${link ? `LINK/CTA A INCLUIR (referencia para el botón, no lo repitas como URL suelta en el texto): ${link.trim()}` : ""}
+${link ? `LINK/CTA EXPLÍCITO A INCLUIR (además de cualquier link que ya menciones dentro del MENSAJE CENTRAL): ${link.trim()}` : ""}
 ${
-  tieneDatos
-    ? `DATOS VERIFICADOS / LINEAMIENTOS OFICIALES (úsalos para el "dato" de cada pieza; NO inventes cifras ni beneficios que no estén aquí):\n${datosVerificados.trim()}`
-    : "No se proveyeron datos verificados. NO inventes cifras, estadísticas ni beneficios específicos — deja \"dato\" y \"datoResaltado\" en null para las 3 piezas."
+  tieneDatosExplicitos
+    ? `DATOS VERIFICADOS / LINEAMIENTOS OFICIALES ADICIONALES (úsalos para el "dato" de cada pieza junto con cualquier cifra que el MENSAJE CENTRAL ya mencione; NO inventes cifras ni beneficios que no estén en ninguno de los dos):\n${datosVerificadosTrim}`
+    : contieneCifraEnMensaje
+      ? `No se proveyeron datos verificados en un campo aparte, pero el MENSAJE CENTRAL sí menciona una cifra o dato concreto — extraelo de ahí para el "dato" de cada pieza, tal como está. No inventes cifras adicionales que no estén en el mensaje.`
+      : "No se proveyeron datos verificados ni hay ninguna cifra concreta en el mensaje. NO inventes cifras, estadísticas ni beneficios específicos — deja \"dato\" y \"datoResaltado\" en null para las 3 piezas."
 }
+
+REGLAS DE INTERPRETACIÓN DEL MENSAJE CENTRAL (puede venir como una descripción libre, no como una línea ya pulida — separá lo siguiente en vez de copiarlo tal cual):
+1. Si el mensaje incluye instrucciones sobre TONO o ESTILO (ej. "que sea urgente pero no alarmista"), aplicalas a cómo escribís — nunca las repitas como texto literal en el titular ni en la bajada.
+2. Si el mensaje menciona una URL o un sitio web, usala SOLO como referencia para el "cta" — no la repitas como URL suelta dentro de headlineMain, headlineAccent ni lede.
+3. Si el mensaje menciona una cifra, estadística o dato oficial concreto, ese es el candidato para "dato"/"datoResaltado" — no lo dejes perdido únicamente dentro de la bajada.
 
 Para cada formato (post, story, banner) genera:
 - headlineMain: primera línea del titular. Corta (ideal 2-4 palabras).
@@ -59,9 +77,10 @@ ${
 
 Además, generá UNA sola vez (no por formato):
 - keyword: 1-2 palabras EN INGLÉS que describan el sujeto fotografiable más literal del mensaje (ej. "hierve el agua" → "boiling water"; "reportá fugas" → "water leak"; "cuida el acuífero" → "aquifer"). Es para buscar una foto de banco de imágenes — tiene que ser un objeto o escena concreta, no un concepto abstracto. Si el mensaje no da pie a nada fotografiable concreto, usá "${KEYWORD_POR_DEFECTO}".
+- linkDetectado: si el MENSAJE CENTRAL menciona una URL, dominio o sitio web (con o sin "http"/"www"), devolvela tal como aparece (ej. "agua.jalisco.gob.mx/reporta"). Si no se menciona ninguna, null. Si ya hay un LINK/CTA EXPLÍCITO arriba, repetí ese mismo valor acá.
 
 Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exacta:
-{"keyword": "...", "post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": ${tieneDatos ? '"..."' : "null"}, "datoResaltado": ${tieneDatos ? '"..."' : "null"}, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
+{"keyword": "...", "linkDetectado": "..." o null, "post": {"headlineMain": "...", "headlineAccent": "...", "lede": "...", "dato": ${tieneDatos ? '"..."' : "null"}, "datoResaltado": ${tieneDatos ? '"..."' : "null"}, "cta": "..."}, "story": {...misma forma...}, "banner": {...misma forma...}}`;
 
   let respuestaTexto: string;
   try {
@@ -110,6 +129,14 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exact
   // el campo vacío/roto — cae al término seguro por defecto.
   if (!datos.keyword || typeof datos.keyword !== "string" || !datos.keyword.trim()) {
     datos.keyword = KEYWORD_POR_DEFECTO;
+  }
+
+  // Si el usuario ya escribió un link explícito, ese manda — no lo pisamos
+  // con lo que la IA haya detectado dentro del mensaje libre.
+  if (link && typeof link === "string" && link.trim()) {
+    datos.linkDetectado = link.trim();
+  } else if (typeof datos.linkDetectado !== "string" || !datos.linkDetectado.trim()) {
+    datos.linkDetectado = null;
   }
 
   return NextResponse.json(datos);
