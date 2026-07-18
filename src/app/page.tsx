@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
+import { THEME_META, DEFAULT_THEME_ID } from "@/design/themes/registry";
+import type { ThemeId } from "@/design/themes/types";
 
 interface PiezaCopy {
   headlineMain: string;
@@ -24,8 +26,8 @@ const FORMATOS: { clave: keyof RespuestaCampana; etiqueta: string }[] = [
   { clave: "banner", etiqueta: "Banner" },
 ];
 
-function urlImagen(formato: string, pieza: PiezaCopy) {
-  const params = new URLSearchParams({ data: JSON.stringify(pieza) });
+function urlImagen(formato: string, pieza: PiezaCopy, tema: ThemeId) {
+  const params = new URLSearchParams({ data: JSON.stringify(pieza), tema });
   return `/api/imagen/${formato}?${params.toString()}`;
 }
 
@@ -33,6 +35,7 @@ export default function Home() {
   const [mensaje, setMensaje] = useState("");
   const [link, setLink] = useState("");
   const [datosVerificados, setDatosVerificados] = useState("");
+  const [tema, setTema] = useState<ThemeId>(DEFAULT_THEME_ID);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<RespuestaCampana | null>(null);
@@ -99,6 +102,27 @@ export default function Home() {
           />
         </label>
 
+        <div className={styles.temaSelector}>
+          <span className={styles.temaLabel}>Tema visual</span>
+          <div className={styles.temaOpciones}>
+            {THEME_META.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => t.implemented && setTema(t.id)}
+                disabled={!t.implemented}
+                className={`${styles.temaCard} ${tema === t.id ? styles.temaCardActiva : ""}`}
+                title={t.implemented ? t.description : `${t.description} (próximamente)`}
+              >
+                <span className={styles.temaNombre}>{t.label}</span>
+                <span className={styles.temaDescripcion}>
+                  {t.implemented ? t.description : "Próximamente"}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button onClick={generar} disabled={cargando || !mensaje.trim()}>
           {cargando ? "Generando…" : "Generar piezas"}
         </button>
@@ -117,7 +141,7 @@ export default function Home() {
         <div className={styles.resultados}>
           {FORMATOS.map(({ clave, etiqueta }) => {
             const pieza = resultado[clave];
-            const src = urlImagen(clave, pieza);
+            const src = urlImagen(clave, pieza, tema);
             return (
               <div key={clave} className={styles.pieza}>
                 <h2>{etiqueta}</h2>

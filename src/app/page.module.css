@@ -51,6 +51,58 @@
   resize: vertical;
 }
 
+.temaSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.temaLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.temaOpciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.temaCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.temaCard:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.temaCardActiva {
+  border-color: #0b5fa5;
+  background: #eef6fb;
+}
+
+.temaNombre {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.temaDescripcion {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.3;
+}
+
 .form button {
   align-self: flex-start;
   background: #0b5fa5;
@@ -132,5 +184,20 @@
     background: #111;
     color: #ededed;
     border-color: #333;
+  }
+
+  .temaCard {
+    background: #111;
+    border-color: #333;
+    color: #ededed;
+  }
+
+  .temaCardActiva {
+    border-color: #34e0d0;
+    background: #10202b;
+  }
+
+  .temaDescripcion {
+    color: #999;
   }
 }
