@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import { AsistenteCampo } from "./components/AsistenteCampo";
 import { Header } from "@/design-system/components/Header";
 import { Chip } from "@/design-system/components/Chip";
+import { FieldTooltip } from "@/design-system/components/FieldTooltip";
 import { THEME_META, DEFAULT_THEME_ID } from "@/design/themes/registry";
 import type { ThemeId } from "@/design/themes/types";
 import type { CampoIAId } from "@/lib/camposAsistidos";
@@ -189,6 +190,17 @@ export default function Home() {
 
           <div className={styles.formulario}>
             <div className={styles.campoPrincipal}>
+              <div className={styles.encabezadoCampo}>
+                <span className={styles.etiquetaConAyuda}>
+                  <label htmlFor="mensaje-campana" className={styles.etiqueta}>
+                    Descripción de la campaña
+                  </label>
+                  <FieldTooltip fieldName="Descripción de la campaña">
+                    Contá qué querés comunicar, a quién y con qué tono. Usaremos esta idea para
+                    escribir el mensaje principal de la campaña.
+                  </FieldTooltip>
+                </span>
+              </div>
               <textarea
                 id="mensaje-campana"
                 className={styles.mensajeInput}
@@ -196,7 +208,6 @@ export default function Home() {
                 onChange={(e) => setMensaje(e.target.value)}
                 placeholder='Ej. "Necesito una campaña para que los vecinos separen la basura reciclable, tono motivador, con un link a nuestro programa"'
                 rows={4}
-                aria-label="Describe tu campaña"
               />
               <div className={styles.accionAyudaPrincipal}>
                 <BotonAyudaIA onClick={() => setCampoIAActivo("mensaje")}>
@@ -227,9 +238,15 @@ export default function Home() {
               <div className={styles.disclosureInner}>
                 <div className={styles.campo}>
                   <div className={styles.encabezadoCampo}>
-                    <label htmlFor="link-cta" className={styles.etiqueta}>
-                      Link / CTA (opcional)
-                    </label>
+                    <span className={styles.etiquetaConAyuda}>
+                      <label htmlFor="link-cta" className={styles.etiqueta}>
+                        Link / CTA (opcional)
+                      </label>
+                      <FieldTooltip fieldName="Link o CTA">
+                        Es la página a la que querés enviar a las personas cuando hagan clic en
+                        la invitación de la campaña. Por ejemplo, un formulario o sitio web.
+                      </FieldTooltip>
+                    </span>
                     <BotonAyudaIA onClick={() => setCampoIAActivo("link")} />
                   </div>
                   <input
@@ -243,9 +260,15 @@ export default function Home() {
 
                 <div className={styles.campo}>
                   <div className={styles.encabezadoCampo}>
-                    <label htmlFor="datos-verificados" className={styles.etiqueta}>
-                      Datos verificados / lineamientos oficiales (opcional)
-                    </label>
+                    <span className={styles.etiquetaConAyuda}>
+                      <label htmlFor="datos-verificados" className={styles.etiqueta}>
+                        Datos verificados / lineamientos oficiales (opcional)
+                      </label>
+                      <FieldTooltip fieldName="Datos verificados y lineamientos oficiales">
+                        Agregá hechos confirmados y reglas que el texto debe respetar. Así evitamos
+                        inventar cifras, beneficios o promesas que no estén aprobados.
+                      </FieldTooltip>
+                    </span>
                     <BotonAyudaIA onClick={() => setCampoIAActivo("datosVerificados")} />
                   </div>
                   <textarea
@@ -262,9 +285,15 @@ export default function Home() {
 
                 <div className={styles.campo}>
                   <div className={styles.encabezadoCampo}>
-                    <label htmlFor="nombre-organizacion" className={styles.etiqueta}>
-                      Nombre de la organización (opcional)
-                    </label>
+                    <span className={styles.etiquetaConAyuda}>
+                      <label htmlFor="nombre-organizacion" className={styles.etiqueta}>
+                        Nombre de la organización (opcional)
+                      </label>
+                      <FieldTooltip fieldName="Nombre de la organización">
+                        Es el nombre de la institución, empresa o colectivo que firma la campaña.
+                        Aparecerá como marca en las piezas generadas.
+                      </FieldTooltip>
+                    </span>
                     <BotonAyudaIA onClick={() => setCampoIAActivo("nombreOrganizacion")} />
                   </div>
                   <input
@@ -278,9 +307,15 @@ export default function Home() {
 
                 <div className={styles.campo}>
                   <div className={styles.encabezadoCampo}>
-                    <label htmlFor="texto-eyebrow" className={styles.etiqueta}>
-                      Texto del eyebrow (opcional)
-                    </label>
+                    <span className={styles.etiquetaConAyuda}>
+                      <label htmlFor="texto-eyebrow" className={styles.etiqueta}>
+                        Texto del eyebrow (opcional)
+                      </label>
+                      <FieldTooltip fieldName="Texto del eyebrow">
+                        Es la frase corta que aparece arriba del título principal. Sirve para dar
+                        contexto, por ejemplo: “Campaña de reciclaje responsable”.
+                      </FieldTooltip>
+                    </span>
                     <BotonAyudaIA onClick={() => setCampoIAActivo("textoEyebrow")} />
                   </div>
                   <input
@@ -301,7 +336,13 @@ export default function Home() {
                 <span className={styles.etiquetaGrupo}>Personalización</span>
 
                 <div className={styles.campo}>
-                  <span className={styles.etiqueta}>Tema visual</span>
+                  <span className={styles.etiquetaConAyuda}>
+                    <span className={styles.etiqueta}>Tema visual</span>
+                    <FieldTooltip fieldName="Tema visual">
+                      Elegí el estilo de colores, tipografías y composición que tendrán todas las
+                      piezas de esta campaña. El contenido no cambia, solo su apariencia.
+                    </FieldTooltip>
+                  </span>
                   <div className={styles.chipsFila}>
                     {THEME_META.map((t) => (
                       <Chip
@@ -319,13 +360,19 @@ export default function Home() {
                 </div>
 
                 <div className={styles.campo}>
-                  <Chip
-                    selected={usarFoto}
-                    disabled={!temaActual?.photoSupported}
-                    onClick={() => setUsarFoto((v) => !v)}
-                  >
-                    Imagen de fondo
-                  </Chip>
+                  <span className={styles.etiquetaConAyuda}>
+                    <Chip
+                      selected={usarFoto}
+                      disabled={!temaActual?.photoSupported}
+                      onClick={() => setUsarFoto((v) => !v)}
+                    >
+                      Imagen de fondo
+                    </Chip>
+                    <FieldTooltip fieldName="Imagen de fondo">
+                      Activá esta opción para buscar una fotografía en Pexels y usarla detrás del
+                      texto. Algunos temas no admiten fotos porque su diseño es solo tipográfico.
+                    </FieldTooltip>
+                  </span>
                   {!temaActual?.photoSupported && (
                     <span className={styles.textoAyuda}>No disponible para este tema todavía.</span>
                   )}
@@ -335,9 +382,15 @@ export default function Home() {
                   <div className={styles.fotoControles}>
                     <div className={styles.campo}>
                       <div className={styles.encabezadoCampo}>
-                        <label htmlFor="keyword-foto" className={styles.etiqueta}>
-                          Palabra clave para la foto (banco: Pexels)
-                        </label>
+                        <span className={styles.etiquetaConAyuda}>
+                          <label htmlFor="keyword-foto" className={styles.etiqueta}>
+                            Palabra clave para la foto (banco: Pexels)
+                          </label>
+                          <FieldTooltip fieldName="Palabra clave para la foto">
+                            Es una palabra breve que Pexels usará para buscar la imagen. Suele dar
+                            mejores resultados en inglés, por ejemplo: “water” o “recycling”.
+                          </FieldTooltip>
+                        </span>
                         <BotonAyudaIA onClick={() => setCampoIAActivo("keyword")} />
                       </div>
                       <input

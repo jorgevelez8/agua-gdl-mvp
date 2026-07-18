@@ -35,6 +35,8 @@
   --background-effect-opacity: 0.82;
   --color-on-accent: #ffffff;
   --color-overlay: rgba(20, 24, 31, 0.48);
+  --color-inverse-surface: #30343b;
+  --color-inverse-on-surface: #ffffff;
 
   /* Semántico — no cuenta como "el acento", uso exclusivo de error. */
   --color-danger: #c0342f;
@@ -64,6 +66,7 @@
      discreto de la versión formulario. */
   --radius: 20px;
   --shadow: 0 1px 2px rgba(20, 24, 31, 0.04), 0 8px 24px rgba(20, 24, 31, 0.06);
+  --tooltip-max-width: 280px;
 
   --font-ui: var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif;
 }

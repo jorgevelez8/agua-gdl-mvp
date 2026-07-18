@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   crearClienteGroq,
+  esErrorAutenticacionGroq,
   FORMATO_RESPUESTA_CAMPANA,
   MODELO_COPY,
   parsearRespuestaJson,
@@ -122,6 +123,14 @@ ${
     logUso(MODELO_COPY, respuesta.usage);
     datos = parsearRespuestaJson<RespuestaCampana>(respuesta.choices[0]?.message.content);
   } catch (err) {
+    if (esErrorAutenticacionGroq(err)) {
+      console.error("[generar-campana] Groq rechazó GROQ_API_KEY.");
+      return NextResponse.json(
+        { error: "La asistencia de IA no está configurada correctamente." },
+        { status: 503 }
+      );
+    }
+
     console.error("Error generando la campaña con Groq:", err);
     return NextResponse.json(
       { error: "No se pudo generar el contenido. Intenta de nuevo." },

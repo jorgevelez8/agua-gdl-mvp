@@ -1,0 +1,71 @@
+.wrapper {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: help;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: min(var(--tooltip-max-width), calc(100vw - (var(--space-3) * 2)));
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-inverse-on-surface);
+  background: var(--color-inverse-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-1);
+  font-weight: 400;
+  line-height: var(--line-height-normal);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.tooltip[data-ready="true"] {
+  opacity: 1;
+  animation: tooltipEntrada 0.15s ease-out;
+}
+
+@keyframes tooltipEntrada {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger {
+    transition: none;
+  }
+
+  .tooltip[data-ready="true"] {
+    animation: none;
+  }
+}

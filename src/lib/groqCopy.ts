@@ -76,10 +76,14 @@ export const FORMATO_RESPUESTA_REFINAMIENTO = {
 
 export function crearClienteGroq(apiKey: string) {
   return new Groq({
-    apiKey,
+    apiKey: apiKey.trim(),
     maxRetries: 0,
     timeout: TIMEOUT_IA_MS,
   });
+}
+
+export function esErrorAutenticacionGroq(error: unknown): boolean {
+  return error instanceof Groq.AuthenticationError;
 }
 
 export function parsearRespuestaJson<T>(contenido: string | null | undefined): T {

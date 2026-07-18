@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CAMPOS_IA, esCampoIAId } from "@/lib/camposAsistidos";
 import {
   crearClienteGroq,
+  esErrorAutenticacionGroq,
   FORMATO_RESPUESTA_REFINAMIENTO,
   MODELO_COPY,
   parsearRespuestaJson,
@@ -107,6 +108,14 @@ Genera la propuesta final combinando únicamente la información útil de ambas 
 
     return NextResponse.json({ propuesta: datos.propuesta.trim() });
   } catch (error) {
+    if (esErrorAutenticacionGroq(error)) {
+      console.error("[refinar-campo] Groq rechazó GROQ_API_KEY.");
+      return NextResponse.json(
+        { error: "La asistencia de IA no está configurada correctamente." },
+        { status: 503 }
+      );
+    }
+
     console.error("Error refinando campo con Groq:", error);
     return NextResponse.json(
       { error: "No se pudo mejorar este campo. Intenta de nuevo." },
