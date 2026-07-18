@@ -37,7 +37,7 @@ export const THEME_META: {
     label: "Bloque",
     description: "Alto contraste, negro + color eléctrico, formas duras.",
     implemented: true,
-    photoSupported: true,
+    photoSupported: false,
   },
   {
     id: "marea",
