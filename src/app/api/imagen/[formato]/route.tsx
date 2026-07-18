@@ -45,6 +45,17 @@ async function resolverFotoComoDataUri(url: string): Promise<string | null> {
   }
 }
 
+// El modelo a veces marca negrita con **así** o __así__ dentro de "dato"
+// aunque no se le pide — sin limpiarlo acá, splitHighlight (pieceTemplate)
+// encuentra "datoResaltado" ANIDADO dentro de los asteriscos y los deja
+// como texto literal alrededor del resaltado. Se limpia en el parseo, el
+// único punto de entrada del dato generado por el modelo, así toda la
+// pieza (incluido el ajuste de tamaño en fitAndTruncate) trabaja siempre
+// con texto ya limpio — con negrita marcada o sin ella.
+function limpiarMarkdownNegrita(texto: string): string {
+  return texto.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1");
+}
+
 function parseContenido(raw: string | null): PiezaContenido {
   if (!raw) {
     return { headlineMain: "", headlineAccent: "", lede: "", dato: null, datoResaltado: null, cta: "" };
@@ -55,8 +66,8 @@ function parseContenido(raw: string | null): PiezaContenido {
       headlineMain: String(parsed.headlineMain ?? ""),
       headlineAccent: String(parsed.headlineAccent ?? ""),
       lede: String(parsed.lede ?? ""),
-      dato: parsed.dato ? String(parsed.dato) : null,
-      datoResaltado: parsed.datoResaltado ? String(parsed.datoResaltado) : null,
+      dato: parsed.dato ? limpiarMarkdownNegrita(String(parsed.dato)) : null,
+      datoResaltado: parsed.datoResaltado ? limpiarMarkdownNegrita(String(parsed.datoResaltado)) : null,
       cta: String(parsed.cta ?? ""),
     };
   } catch {
