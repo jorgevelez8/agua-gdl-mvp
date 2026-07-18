@@ -150,7 +150,7 @@ function Headline({
           lineHeight,
           // Mayúsculas acentuadas (Ú, Ó, Á...) exceden la caja de line-height
           // tan ajustada y pinchan la línea de arriba — este margen las despeja.
-          marginTop: accentSize * 0.16,
+          marginTop: accentSize * 0.55,
           color: colors.accent,
           textTransform: "uppercase",
         }}
@@ -161,7 +161,55 @@ function Headline({
   );
 }
 
-function Lede({ text, fontSize, maxWidthPct = 82 }: { text: string; fontSize: number; maxWidthPct?: number }) {
+/** Titular en una sola línea (main + accent lado a lado, no apilados) —
+ * para el banner, que es ancho y bajo y no tiene alto para 2 líneas grandes. */
+function HeadlineInline({ main, accent, size }: { main: string; accent: string; size: number }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline" }}>
+      <span
+        style={{
+          display: "flex",
+          fontFamily: "Anton",
+          fontWeight: 400,
+          fontSize: size,
+          lineHeight: 1.05,
+          color: colors.textPrimary,
+          textTransform: "uppercase",
+        }}
+      >
+        {main}
+        {" "}
+      </span>
+      <span
+        style={{
+          display: "flex",
+          fontFamily: "Anton",
+          fontWeight: 400,
+          fontSize: size,
+          lineHeight: 1.05,
+          color: colors.accent,
+          textTransform: "uppercase",
+        }}
+      >
+        {accent}
+      </span>
+    </div>
+  );
+}
+
+function Lede({
+  text,
+  fontSize,
+  maxWidthPct = 82,
+  maxWidthPx,
+  marginTop,
+}: {
+  text: string;
+  fontSize: number;
+  maxWidthPct?: number;
+  maxWidthPx?: number;
+  marginTop?: number;
+}) {
   return (
     <p
       style={{
@@ -171,8 +219,8 @@ function Lede({ text, fontSize, maxWidthPct = 82 }: { text: string; fontSize: nu
         fontSize,
         lineHeight: 1.4,
         color: colors.textSecondary,
-        maxWidth: `${maxWidthPct}%`,
-        marginTop: fontSize * 0.9,
+        maxWidth: maxWidthPx ?? `${maxWidthPct}%`,
+        marginTop: marginTop ?? fontSize * 0.9,
       }}
     >
       {text}
@@ -396,10 +444,19 @@ export function buildVerticalPoster(spec: VerticalSpec, contenido: PiezaContenid
 
 export function buildBannerPoster(spec: BannerSpec, contenido: PiezaContenido) {
   const eyebrowFit = fitAndTruncate(campaign.eyebrow, spec.eyebrow);
-  const headlineMain = fitAndTruncate(contenido.headlineMain, spec.headlineMain);
-  const headlineAccent = fitAndTruncate(contenido.headlineAccent, spec.headlineAccent);
-  const ledeText = truncate(contenido.lede, spec.ledeMaxChars);
-  const ledeSize = spec.width * 0.024;
+  const headlineText = `${contenido.headlineMain} ${contenido.headlineAccent}`.trim();
+  const headlineFit = fitAndTruncate(headlineText, spec.headline);
+  // fitAndTruncate puede truncar el texto combinado — recortamos accent
+  // primero (es el cierre, se puede perder antes que el mensaje principal).
+  const headlineMain =
+    headlineFit.text.length >= contenido.headlineMain.length
+      ? contenido.headlineMain
+      : headlineFit.text;
+  const headlineAccent = headlineFit.text.length >= contenido.headlineMain.length
+    ? headlineFit.text.slice(contenido.headlineMain.length).trim()
+    : "";
+  const ledeText = truncate(contenido.lede, 100);
+  const ledeSize = spec.width * 0.021;
   const ctaFit = fitAndTruncate(contenido.cta, spec.cta);
   const datoFit = contenido.dato ? fitAndTruncate(contenido.dato, spec.dato) : null;
 
@@ -410,54 +467,53 @@ export function buildBannerPoster(spec: BannerSpec, contenido: PiezaContenido) {
           display: "flex",
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(110% 130% at 92% 0%, ${colors.glow} 0%, rgba(18,113,138,0) 55%)`,
+          background: `radial-gradient(90% 120% at 98% 0%, ${colors.glow} 0%, rgba(18,113,138,0) 55%)`,
         }}
       />
-      <Ripples width={spec.width} boxWidth={spec.width * 0.62} />
+      <Ripples width={spec.width} boxWidth={spec.width * 0.4} />
       <div
         style={{
           display: "flex",
+          flexDirection: "column",
           position: "relative",
           height: "100%",
           width: "100%",
           padding: spec.padding,
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: spec.padding,
+          justifyContent: "center",
+          gap: spec.padding * 0.65,
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", width: spec.leftColWidth }}>
-          <Eyebrow fontSize={eyebrowFit.sizePx} />
-          <div style={{ display: "flex", flexDirection: "column", marginTop: spec.padding * 0.4 }}>
-            <Headline
-              main={headlineMain.text}
-              accent={headlineAccent.text}
-              mainSize={headlineMain.sizePx}
-              accentSize={headlineAccent.sizePx}
-              lineHeight={1}
-            />
-            <Lede text={ledeText} fontSize={ledeSize} maxWidthPct={98} />
-          </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Eyebrow fontSize={eyebrowFit.sizePx} maxWidthPx={spec.eyebrow.maxWidthPx} />
+          <BrandLockup nameSize={spec.brand.nameSize} noteSize={spec.brand.noteSize} />
+        </div>
+        <div style={{ display: "flex" }}>
+          <HeadlineInline main={headlineMain} accent={headlineAccent} size={headlineFit.sizePx} />
         </div>
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             alignItems: "flex-end",
-            width: spec.rightColWidth,
-            height: "100%",
             justifyContent: "space-between",
+            gap: spec.bottomRowGap,
           }}
         >
-          <BrandLockup nameSize={spec.width * 0.02} noteSize={spec.width * 0.012} />
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: spec.padding * 0.5 }}>
+          <Lede text={ledeText} fontSize={ledeSize} maxWidthPx={spec.ledeMaxWidthPx} marginTop={0} />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: spec.bottomRowGap * 0.6,
+            }}
+          >
             {datoFit && (
               <DataChip
                 dato={datoFit.text}
                 datoResaltado={contenido.datoResaltado}
                 fontSize={datoFit.sizePx}
                 iconSize={datoFit.sizePx * 2}
-                maxWidthPx={spec.rightColWidth}
+                maxWidthPx={spec.dato.maxWidthPx}
               />
             )}
             <CtaButton label={ctaFit.text} fontSize={ctaFit.sizePx} />

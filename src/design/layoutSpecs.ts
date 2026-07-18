@@ -56,16 +56,21 @@ function verticalSpec(width: number, height: number): VerticalSpec {
 export const postSpec: VerticalSpec = verticalSpec(1080, 1080);
 export const storySpec: VerticalSpec = verticalSpec(1080, 1920);
 
+// 1200×628 es ancho y bajo — partirlo en 2 columnas verticales (como un post
+// estirado) fuerza el titular a achicarse y deja aire mal repartido en el
+// medio. Composición propia: fila superior (eyebrow + marca), titular en
+// UNA sola línea a casi todo el ancho, fila inferior (bajada a la izquierda,
+// chip+CTA compactos a la derecha) — usa el ancho, no lo divide.
 export interface BannerSpec {
   width: number;
   height: number;
   padding: number;
-  leftColWidth: number;
-  rightColWidth: number;
+  contentWidth: number;
   eyebrow: FitConfig;
-  headlineMain: FitConfig;
-  headlineAccent: FitConfig;
-  ledeMaxChars: number;
+  brand: { nameSize: number; noteSize: number };
+  headline: FitConfig;
+  ledeMaxWidthPx: number;
+  bottomRowGap: number;
   dato: FitConfig;
   cta: FitConfig;
 }
@@ -73,47 +78,40 @@ export interface BannerSpec {
 const BANNER_WIDTH = 1200;
 const BANNER_HEIGHT = 628;
 const bannerPadding = cqw(5, BANNER_WIDTH);
-const bannerGap = bannerPadding;
-const bannerLeftColWidth = BANNER_WIDTH * 0.52 - bannerPadding * 1.5;
-const bannerRightColWidth = BANNER_WIDTH - bannerPadding * 2 - bannerGap - bannerLeftColWidth;
+const bannerContentWidth = BANNER_WIDTH - bannerPadding * 2;
 
 export const bannerSpec: BannerSpec = {
   width: BANNER_WIDTH,
   height: BANNER_HEIGHT,
   padding: bannerPadding,
-  leftColWidth: bannerLeftColWidth,
-  rightColWidth: bannerRightColWidth,
+  contentWidth: bannerContentWidth,
   eyebrow: {
-    // el eyebrow es texto de marca fijo y largo — se achica para no envolver
-    // a 2 líneas dentro de la píldora, en vez de dejarlo desbordar.
-    maxWidthPx: bannerLeftColWidth - 24,
+    maxWidthPx: bannerContentWidth * 0.6,
     charWidthFactor: 0.62,
-    minSize: 13,
+    minSize: 14,
     maxSize: 20,
   },
-  headlineMain: {
-    maxWidthPx: bannerLeftColWidth,
-    charWidthFactor: 0.62,
-    minSize: 26,
-    maxSize: 60,
+  brand: { nameSize: BANNER_WIDTH * 0.02, noteSize: BANNER_WIDTH * 0.012 },
+  // Titular en una sola línea (main + accent inline) a casi todo el ancho —
+  // por eso puede ser mucho más grande que en el diseño anterior de 2 columnas.
+  headline: {
+    maxWidthPx: bannerContentWidth * 0.96,
+    charWidthFactor: 0.6,
+    minSize: 36,
+    maxSize: 84,
   },
-  headlineAccent: {
-    maxWidthPx: bannerLeftColWidth,
-    charWidthFactor: 0.62,
-    minSize: 22,
-    maxSize: 50,
-  },
-  ledeMaxChars: 92,
+  ledeMaxWidthPx: bannerContentWidth * 0.54,
+  bottomRowGap: bannerPadding * 0.7,
   dato: {
-    maxWidthPx: bannerRightColWidth * 0.74,
+    maxWidthPx: bannerContentWidth * 0.44,
     charWidthFactor: 0.52,
     minSize: 12,
-    maxSize: 17,
+    maxSize: 16,
   },
   cta: {
-    maxWidthPx: bannerRightColWidth * 0.92,
+    maxWidthPx: bannerContentWidth * 0.26,
     charWidthFactor: 0.56,
     minSize: 15,
-    maxSize: 20,
+    maxSize: 19,
   },
 };
