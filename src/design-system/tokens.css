@@ -1,0 +1,56 @@
+/**
+ * Fuente de verdad del look del PRODUCTO (la herramienta "Campaña" — la
+ * interfaz en src/app/*). No confundir con src/design/themes/*, que son
+ * los temas de las PIEZAS generadas (otra identidad, ver DESIGN.md §1).
+ *
+ * Todo estilo de la interfaz deriva de estas variables — nada de hex,
+ * px o rgba sueltos dentro de un componente (DESIGN.md §0 y §4).
+ */
+:root {
+  /* Superficies: neutros con un sesgo frío hacia el acento, no un gris
+     puro — DESIGN.md pide "aire" (Apple) sin caer en el default gris. */
+  --color-bg: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-border: #e3e8f0;
+
+  --color-text: #14181f;
+  --color-text-soft: #565f6d;
+  --color-text-muted: #8991a1;
+
+  /* Acento: tomado directo del azul de public/brand/logo.png (muestreado
+     en la punta del chevron, rgb(13,104,250)) — es EL único color
+     saturado permitido en pantalla (DESIGN.md §4.3). */
+  --color-accent: #0d68fa;
+  --color-accent-hover: #0b54cc;
+  --color-accent-soft: rgba(13, 104, 250, 0.08);
+  --color-accent-border: rgba(13, 104, 250, 0.28);
+
+  /* Semántico — no cuenta como "el acento", uso exclusivo de error. */
+  --color-danger: #c0342f;
+  --color-danger-soft: rgba(192, 52, 47, 0.07);
+
+  /* Escala tipográfica: 4 tamaños en total, en toda la app (DESIGN.md §4.2). */
+  --font-size-1: 13px; /* meta, hints, etiquetas de formato */
+  --font-size-2: 15px; /* cuerpo, inputs, botones */
+  --font-size-3: 19px; /* encabezado del formulario, nombre de producto */
+  --font-size-4: 32px; /* el momento protagonista: título de resultados */
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.55;
+
+  /* Espaciado: múltiplos estrictos de 4px (DESIGN.md §4.1). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Un solo radio, una sola sombra, usados en todo (DESIGN.md §4.4). */
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 24, 31, 0.04), 0 8px 24px rgba(20, 24, 31, 0.06);
+
+  --font-ui: var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif;
+}

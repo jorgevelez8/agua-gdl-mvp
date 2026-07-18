@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "../design-system/tokens.css";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Generador de campaña — Agua Guadalajara",
+  title: "Campaña — genera piezas de campaña en minutos",
   description:
-    "Genera piezas gráficas de campaña (post, story, banner) a partir de un mensaje, para el reto Las Diez.",
+    "Escribí un mensaje y obtené 3 piezas gráficas listas para publicar (post, story, banner). Demo activa: Agua Guadalajara, para el reto Las Diez.",
 };
 
 export default function RootLayout({

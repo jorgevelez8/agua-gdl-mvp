@@ -1,206 +1,399 @@
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+.pagina {
   width: 100%;
-  max-width: 720px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 48px 24px 80px;
-  font-family: var(--font-geist-sans);
-  gap: 24px;
+  padding: 0 var(--space-6) var(--space-16);
 }
 
-.main h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0;
-}
+/* ---------- Layout: fase inicial vs. fase con resultados ---------- */
 
-.aviso {
-  font-size: 14px;
-  color: #555;
-  background: #eef6fb;
-  border: 1px solid #bcdcee;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin: 0;
-}
-
-.form {
+.layoutInicial {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding-top: var(--space-12);
 }
 
-.form label {
+.layoutConResultados {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) 1fr;
+  align-items: start;
+  gap: var(--space-8);
+  padding-top: var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .layoutConResultados {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Panel de formulario ---------- */
+
+.panelFormulario {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 14px;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  box-shadow: var(--shadow);
+}
+
+.tituloFormulario {
+  font-size: var(--font-size-3);
   font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
 }
 
-.form textarea,
-.form input {
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 400;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+.subtitulo {
+  font-size: var(--font-size-2);
+  color: var(--color-text-soft);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--space-4);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.etiqueta {
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.etiquetaGrupo {
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.divisor {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-2) 0;
+}
+
+.formulario textarea,
+.formulario input[type="text"],
+.temaSelect {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-2);
+  color: var(--color-text);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
   resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formulario textarea:focus,
+.formulario input[type="text"]:focus,
+.temaSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.mensajeInput {
+  min-height: 84px;
+  font-size: var(--font-size-2);
 }
 
 .temaSelect {
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 400;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
   cursor: pointer;
 }
 
-.temaDescripcion {
-  font-size: 12px;
-  color: #666;
-  line-height: 1.3;
-  margin: -8px 0 0;
+.textoAyuda {
+  font-size: var(--font-size-1);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-normal);
 }
 
-.form label.checkboxLabel {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+.campoCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--font-size-2);
+  color: var(--color-text);
 }
 
-.form label.checkboxLabel input {
-  width: auto;
+.campoCheckbox input {
+  margin-top: 3px;
+  accent-color: var(--color-accent);
 }
 
 .fotoControles {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border: 1px dashed #ccc;
-  border-radius: 8px;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+}
+
+.accionPrincipal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* ---------- Botones ---------- */
+
+.botonPrimario {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-2);
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.botonPrimario:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.botonPrimario:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.hintDeshabilitado {
+  font-size: var(--font-size-1);
+  color: var(--color-text-muted);
 }
 
 .botonSecundario {
   align-self: flex-start;
-  background: #fff !important;
-  color: #0b5fa5 !important;
-  border: 1px solid #0b5fa5 !important;
-  border-radius: 6px;
-  padding: 8px 16px !important;
-  font-size: 14px !important;
+  font-family: var(--font-ui);
+  font-size: var(--font-size-1);
   font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
   cursor: pointer;
 }
 
 .botonSecundario:disabled {
-  color: #9db8cc !important;
-  border-color: #9db8cc !important;
-  cursor: not-allowed;
-}
-
-.form button {
-  align-self: flex-start;
-  background: #0b5fa5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.form button:disabled {
-  background: #9db8cc;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
   cursor: not-allowed;
 }
 
 .error {
-  color: #b3261e;
-  font-size: 14px;
-  margin: 0;
+  font-size: var(--font-size-2);
+  color: var(--color-danger);
 }
 
 .reintentar {
-  background: none !important;
-  color: #0b5fa5 !important;
+  font-family: var(--font-ui);
+  background: none;
+  color: var(--color-accent);
   border: none;
-  padding: 0 !important;
+  padding: 0;
   text-decoration: underline;
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px !important;
+  font-size: var(--font-size-2);
 }
 
-.resultados {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
+/* ---------- Panel de resultados: el momento protagonista ---------- */
+
+.panelResultados {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.tituloResultados {
+  font-size: var(--font-size-4);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.015em;
+  line-height: var(--line-height-tight);
+}
+
+.notaMarca {
+  font-size: var(--font-size-1);
+  color: var(--color-text-muted);
+  max-width: 62ch;
+  margin-bottom: var(--space-4);
+}
+
+.grillaResultados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+  margin-top: var(--space-2);
 }
 
 .pieza {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
+  opacity: 0;
+  animation: entradaPieza 0.5s ease forwards;
 }
 
-.pieza h2 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
+@keyframes entradaPieza {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pieza {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+.marcoImagen {
+  position: relative;
+  height: clamp(200px, 30vw, 360px);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-border);
+  box-shadow: var(--shadow);
+}
+
+.marco_post {
+  aspect-ratio: 1 / 1;
+  width: auto;
+}
+
+.marco_story {
+  aspect-ratio: 9 / 16;
+  width: auto;
+}
+
+.marco_banner {
+  aspect-ratio: 1200 / 628;
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .grillaResultados {
+    flex-direction: column;
+  }
+
+  .marcoImagen,
+  .marco_post,
+  .marco_story,
+  .marco_banner {
+    height: auto;
+    width: 100%;
+  }
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    var(--color-border) 30%,
+    #eef1f6 50%,
+    var(--color-border) 70%
+  );
+  background-size: 200% 100%;
+  animation: brilloSkeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes brilloSkeleton {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
 }
 
 .imagen {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.35s ease;
 }
 
-.copyTexto {
-  font-size: 13px;
-  color: #444;
-  margin: 0;
+.imagenOculta {
+  opacity: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .main h1 {
-    color: #ededed;
-  }
+.imagenVisible {
+  opacity: 1;
+}
 
-  .aviso {
-    background: #10202b;
-    border-color: #1d3a4c;
-    color: #cfe8f5;
-  }
+.piezaPie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
 
-  .form textarea,
-  .form input,
-  .temaSelect {
-    background: #111;
-    color: #ededed;
-    border-color: #333;
-  }
+.formatoNombre {
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-text);
+}
 
-  .temaDescripcion {
-    color: #999;
-  }
+.formatoMedida {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
 
-  .fotoControles {
-    border-color: #333;
-  }
+.botonDescargar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
 
-  .botonSecundario {
-    background: #111 !important;
-    color: #7fc4f2 !important;
-    border-color: #7fc4f2 !important;
-  }
+.botonDescargar:hover {
+  background: var(--color-accent-border);
 }
