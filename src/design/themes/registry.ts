@@ -30,7 +30,7 @@ export const THEME_META: {
     label: "Papel",
     description: "Claro editorial, hueso/blanco, tipografía geométrica limpia.",
     implemented: true,
-    photoSupported: false,
+    photoSupported: true,
   },
   {
     id: "bloque",

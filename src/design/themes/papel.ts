@@ -52,4 +52,14 @@ export const papel: ThemeDefinition = {
   },
   radii: { pill: 999, chipCorner: 0.7, brandMark: 0.45 },
   motif: "none",
+  // Caso especial: Papel es el único tema con texto OSCURO sobre fondo
+  // CLARO — todos los demás invierten esto (texto claro, overlay oscurea
+  // la foto). Acá el overlay tiene que ACLARAR la foto, no oscurecerla, y
+  // con más densidad que un scrim oscuro típico: un textPrimary casi negro
+  // se pierde fácil contra cualquier región oscura de una foto real, así
+  // que hace falta empujarla fuerte hacia el crema del fondo (bgTop) para
+  // sostener el mismo contraste en toda la pieza. Se calibra en la
+  // verificación de PNG con foto oscura Y foto clara antes de dar por
+  // bueno el valor.
+  photoOverlay: { mode: "flat", flatColor: "rgba(246,242,233,0.85)" },
 };
