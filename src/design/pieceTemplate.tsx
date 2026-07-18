@@ -57,8 +57,8 @@ function Icon({
 
 // --- Motivo decorativo de fondo ---------------------------------------
 // Cada tema declara un `motif` (waves | hardShapes | organicBlobs | none).
-// Hoy solo "waves" está implementado (Corriente). Los demás se agregan
-// cuando se implementa el tema que los necesita — no antes.
+// "waves" (Corriente) y "hardShapes" (Bloque) implementados; "organicBlobs"
+// (Marea) se agrega cuando se construye ese tema.
 
 const WAVES_RIPPLES = {
   radii: [18, 28, 38, 48],
@@ -121,6 +121,75 @@ function WavesLine({ theme, width, containerWidth }: { theme: ThemeDefinition; w
   );
 }
 
+const HARD_SQUARES = {
+  // Lados de cuadrado — se rotan 45° (quedan como rombos), mismo espíritu
+  // que las ondas concéntricas de Corriente pero angular en vez de circular.
+  sides: [22, 36, 50, 64],
+  viewBox: "0 0 100 100",
+  strokeWidth: 0.5,
+  opacity: 0.4,
+  sizeCqw: 46,
+  offsetCqw: -18,
+};
+
+const HARD_ZIGZAG = {
+  viewBox: "0 0 1080 60",
+  // Reemplazo anguloso de la curva de onda — mismos puntos de apoyo, sin
+  // curvas Q, todo en líneas rectas.
+  path: "M0 40 L120 12 L240 40 L360 12 L480 40 L600 12 L720 40 L840 12 L960 40 L1080 12",
+  strokeWidth: 3,
+  opacity: 0.5,
+  bottomCqw: 20,
+};
+
+/** Rombos anidados (cuadrados rotados 45°) irradiando desde la esquina
+ * superior derecha — versión angular del motivo de ondas, para el tema de
+ * alto contraste. Contenido y no debe cruzar el titular. */
+function HardCorner({ theme, boxWidth }: { theme: ThemeDefinition; boxWidth: number }) {
+  const size = (HARD_SQUARES.sizeCqw / 100) * boxWidth;
+  const offset = (HARD_SQUARES.offsetCqw / 100) * boxWidth;
+  return (
+    <svg
+      viewBox={HARD_SQUARES.viewBox}
+      width={size}
+      height={size}
+      style={{ display: "flex", position: "absolute", top: offset, right: offset }}
+    >
+      {HARD_SQUARES.sides.map((side) => (
+        <rect
+          key={side}
+          x={50 - side / 2}
+          y={50 - side / 2}
+          width={side}
+          height={side}
+          fill="none"
+          stroke={theme.colors.accent}
+          strokeWidth={HARD_SQUARES.strokeWidth}
+          opacity={HARD_SQUARES.opacity}
+          transform={`rotate(45 50 50)`}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/** Zigzag anguloso horizontal — separa cuerpo de pie, versión "dura" de la
+ * línea de onda. */
+function HardLine({ theme, width, containerWidth }: { theme: ThemeDefinition; width: number; containerWidth: number }) {
+  const bottom = (HARD_ZIGZAG.bottomCqw / 100) * containerWidth;
+  return (
+    <svg
+      viewBox={HARD_ZIGZAG.viewBox}
+      width={width}
+      height={(60 / 1080) * width}
+      preserveAspectRatio="none"
+      style={{ display: "flex", position: "absolute", left: 0, bottom, opacity: HARD_ZIGZAG.opacity }}
+    >
+      <path d={HARD_ZIGZAG.path} fill="none" stroke={theme.colors.accent} strokeWidth={HARD_ZIGZAG.strokeWidth} />
+    </svg>
+  );
+}
+
 /** Dispatcher del motivo de fondo según theme.motif. Devuelve los elementos
  * decorativos a superponer (ya posicionados en absoluto). */
 function Motif({ theme, width, boxWidth }: { theme: ThemeDefinition; width: number; boxWidth: number }) {
@@ -132,8 +201,15 @@ function Motif({ theme, width, boxWidth }: { theme: ThemeDefinition; width: numb
           <WavesLine theme={theme} width={width} containerWidth={width} />
         </>
       );
-    // "hardShapes" (Bloque), "organicBlobs" (Marea) y "none" (Papel) se
-    // implementan cuando se construye ese tema.
+    case "hardShapes":
+      return (
+        <>
+          <HardCorner theme={theme} boxWidth={boxWidth} />
+          <HardLine theme={theme} width={width} containerWidth={width} />
+        </>
+      );
+    // "organicBlobs" (Marea) y "none" (Papel) se implementan/usan según
+    // el tema — Papel deliberadamente no dibuja nada acá.
     default:
       return null;
   }
