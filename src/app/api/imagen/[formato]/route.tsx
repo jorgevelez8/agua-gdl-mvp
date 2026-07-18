@@ -1,103 +1,73 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { buildVerticalPoster, buildBannerPoster, PiezaContenido } from "@/design/pieceTemplate";
+import { postSpec, storySpec, bannerSpec } from "@/design/layoutSpecs";
 
 export const runtime = "edge";
 
-const TAMANOS: Record<string, { width: number; height: number }> = {
-  post: { width: 1080, height: 1080 },
-  story: { width: 1080, height: 1920 },
-  banner: { width: 1200, height: 628 },
-};
+async function loadFont(path: string): Promise<ArrayBuffer> {
+  return fetch(new URL(path, import.meta.url)).then((res) => res.arrayBuffer());
+}
 
-const AZUL_PRIMARIO = "#0B5FA5";
-const AZUL_SECUNDARIO = "#7FD1E0";
+function parseContenido(raw: string | null): PiezaContenido {
+  if (!raw) {
+    return { headlineMain: "", headlineAccent: "", lede: "", dato: null, datoResaltado: null, cta: "" };
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      headlineMain: String(parsed.headlineMain ?? ""),
+      headlineAccent: String(parsed.headlineAccent ?? ""),
+      lede: String(parsed.lede ?? ""),
+      dato: parsed.dato ? String(parsed.dato) : null,
+      datoResaltado: parsed.datoResaltado ? String(parsed.datoResaltado) : null,
+      cta: String(parsed.cta ?? ""),
+    };
+  } catch {
+    return { headlineMain: "", headlineAccent: "", lede: "", dato: null, datoResaltado: null, cta: "" };
+  }
+}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ formato: string }> }
 ) {
   const { formato } = await params;
-  const tamano = TAMANOS[formato];
-  if (!tamano) {
+  const { searchParams } = new URL(req.url);
+  const contenido = parseContenido(searchParams.get("data"));
+
+  const [anton, barlowRegular, barlowMedium, barlowSemiBold, barlowSemiBoldItalic] = await Promise.all([
+    loadFont("../../../../assets/fonts/Anton-Regular.ttf"),
+    loadFont("../../../../assets/fonts/Barlow-Regular.ttf"),
+    loadFont("../../../../assets/fonts/Barlow-Medium.ttf"),
+    loadFont("../../../../assets/fonts/Barlow-SemiBold.ttf"),
+    loadFont("../../../../assets/fonts/Barlow-SemiBoldItalic.ttf"),
+  ]);
+
+  const fonts = [
+    { name: "Anton", data: anton, weight: 400 as const, style: "normal" as const },
+    { name: "Barlow", data: barlowRegular, weight: 400 as const, style: "normal" as const },
+    { name: "Barlow", data: barlowMedium, weight: 500 as const, style: "normal" as const },
+    { name: "Barlow", data: barlowSemiBold, weight: 600 as const, style: "normal" as const },
+    { name: "Barlow", data: barlowSemiBoldItalic, weight: 600 as const, style: "italic" as const },
+  ];
+
+  if (formato === "banner") {
+    return new ImageResponse(buildBannerPoster(bannerSpec, contenido), {
+      width: bannerSpec.width,
+      height: bannerSpec.height,
+      fonts,
+    });
+  }
+
+  const spec = formato === "story" ? storySpec : formato === "post" ? postSpec : null;
+  if (!spec) {
     return new Response("Formato inválido", { status: 400 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const titulo = searchParams.get("titulo") || "";
-  const copy = searchParams.get("copy") || "";
-  const esBanner = formato === "banner";
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: `linear-gradient(160deg, ${AZUL_PRIMARIO} 0%, ${AZUL_SECUNDARIO} 100%)`,
-          padding: "60px",
-          textAlign: "center",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            width: 90,
-            height: 90,
-            borderRadius: "50%",
-            background: "white",
-            marginBottom: 32,
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 48,
-          }}
-        >
-          💧
-        </div>
-        <div
-          style={{
-            display: "flex",
-            fontSize: esBanner ? 48 : 64,
-            fontWeight: 700,
-            color: "white",
-            marginBottom: 20,
-            lineHeight: 1.15,
-            maxWidth: "90%",
-          }}
-        >
-          {titulo}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            fontSize: esBanner ? 26 : 34,
-            color: "white",
-            opacity: 0.92,
-            maxWidth: "85%",
-            lineHeight: 1.3,
-          }}
-        >
-          {copy}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            bottom: 24,
-            fontSize: 18,
-            color: "white",
-            opacity: 0.7,
-          }}
-        >
-          Placeholder de marca — demo
-        </div>
-      </div>
-    ),
-    { width: tamano.width, height: tamano.height, emoji: "twemoji" }
-  );
+  return new ImageResponse(buildVerticalPoster(spec, contenido), {
+    width: spec.width,
+    height: spec.height,
+    fonts,
+  });
 }

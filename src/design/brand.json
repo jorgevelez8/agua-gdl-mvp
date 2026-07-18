@@ -1,0 +1,67 @@
+{
+  "name": "Agua GDL — placeholder de marca (demo)",
+  "campaign": {
+    "eyebrow": "Programa Emergente de Calidad del Agua",
+    "brandName": "AGUA GDL"
+  },
+  "colors": {
+    "bgTop": "#0e4a5c",
+    "bgMid": "#08344a",
+    "bgDeep": "#05202f",
+    "glow": "#12718a",
+    "accent": "#34e0d0",
+    "accentEyebrowText": "#7ff3e6",
+    "accentSoftBg": "rgba(52,224,208,0.14)",
+    "accentBorder": "rgba(52,224,208,0.55)",
+    "chipIconBg": "rgba(52,224,208,0.18)",
+    "chipBg": "rgba(255,255,255,0.07)",
+    "ctaBg": "#34e0d0",
+    "ctaText": "#05202f",
+    "brandMarkBg": "rgba(255,255,255,0.12)",
+    "textPrimary": "#eafcff",
+    "textSecondary": "#cdeef4",
+    "textMuted": "rgba(234,252,255,0.5)"
+  },
+  "fonts": {
+    "display": { "family": "Anton", "weight": 400 },
+    "body": { "family": "Barlow", "weights": [400, 500, 600], "italicWeights": [600] }
+  },
+  "type": {
+    "eyebrow": { "sizeCqw": 2.15, "letterSpacingCqw": 0.22, "weight": 600 },
+    "headline": { "sizeCqw": 15, "lineHeight": 0.92, "weight": 400 },
+    "lede": { "sizeCqw": 3.5, "lineHeight": 1.4, "weight": 400, "maxWidthPct": 82 },
+    "datachip": { "sizeCqw": 2.7, "lineHeight": 1.35, "weight": 400 },
+    "cta": { "sizeCqw": 3, "weight": 600 },
+    "brandName": { "sizeCqw": 3 },
+    "brandNote": { "sizeCqw": 1.7 }
+  },
+  "radii": {
+    "pill": 999,
+    "chipRightCqw": 2
+  },
+  "icons": {
+    "drop": "M12 2s7 8 7 13a7 7 0 1 1-14 0c0-5 7-13 7-13z",
+    "leak": "M12 2v6M12 22a7 7 0 0 0 7-7c0-4-7-9-7-9s-7 5-7 9a7 7 0 0 0 7 7z",
+    "arrow": "M5 12h14M13 6l6 6-6 6"
+  },
+  "motif": {
+    "ripples": {
+      "description": "4 círculos concéntricos irradiando desde la esquina superior derecha",
+      "radii": [18, 28, 38, 48],
+      "viewBox": "0 0 100 100",
+      "strokeWidth": 0.45,
+      "opacity": 0.5,
+      "sizeCqw": 62,
+      "offsetCqw": -14
+    },
+    "wave": {
+      "description": "línea de onda horizontal, separa cuerpo de pie",
+      "viewBox": "0 0 1080 60",
+      "path": "M0 30 Q 135 6 270 30 T 540 30 T 810 30 T 1080 30",
+      "strokeWidth": 2.5,
+      "opacity": 0.35,
+      "bottomCqw": 20
+    }
+  },
+  "note": "Este brand.json es un placeholder de identidad visual para la demo del reto Las Diez — el sistema aplicaría la identidad oficial del programa una vez integrado."
+}

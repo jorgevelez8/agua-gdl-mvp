@@ -1,0 +1,149 @@
+<meta charset="utf-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:ital,wght@0,400;0,500;0,600;1,600&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* El .poster es la superficie que se renderiza a PNG.
+     Usa unidades cqw (1cqw = 1% del ancho), asi escala perfecto:
+     ponlo a 1080px de ancho en el renderer y sale 1080x1080 nitido. */
+  .stage { width: 100%; display: flex; justify-content: center; background: #0a1a24; padding: 24px; }
+
+  .poster {
+    width: min(1080px, 100%);
+    aspect-ratio: 1 / 1;
+    container-type: inline-size;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 82% 8%, #12718a 0%, rgba(18,113,138,0) 55%),
+      linear-gradient(168deg, #0e4a5c 0%, #08344a 48%, #05202f 100%);
+    color: #eafcff;
+    font-family: 'Barlow', system-ui, sans-serif;
+  }
+
+  /* Firma visual: ondas concentricas que irradian desde arriba-derecha */
+  .ripples { position: absolute; top: -14cqw; right: -14cqw; width: 62cqw; height: 62cqw; opacity: 0.5; }
+  .ripples circle { fill: none; stroke: #34e0d0; stroke-width: 0.45; }
+
+  /* Linea de onda que separa el cuerpo del pie */
+  .wave { position: absolute; left: 0; right: 0; bottom: 20cqw; width: 100%; opacity: 0.35; }
+
+  .content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; padding: 7cqw; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 1.6cqw;
+    align-self: flex-start;
+    background: rgba(52,224,208,0.14);
+    border: 0.25cqw solid rgba(52,224,208,0.55);
+    color: #7ff3e6;
+    font-weight: 600; font-size: 2.15cqw; letter-spacing: 0.22cqw; text-transform: uppercase;
+    padding: 1.5cqw 2.6cqw; border-radius: 100px;
+  }
+  .eyebrow svg { width: 2.8cqw; height: 2.8cqw; }
+
+  .headline {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    font-size: 15cqw; line-height: 0.92;
+    letter-spacing: 0.1cqw;
+    margin-top: auto;
+    text-transform: uppercase;
+    text-shadow: 0 0.6cqw 2.4cqw rgba(0,0,0,0.28);
+  }
+  .headline .accent { color: #34e0d0; }
+
+  .lede {
+    font-size: 3.5cqw; line-height: 1.4; font-weight: 400;
+    color: #cdeef4; max-width: 82%;
+    margin-top: 3cqw;
+  }
+
+  /* Chip de dato verificado: se distingue del mensaje */
+  .datachip {
+    display: flex; align-items: center; gap: 2.4cqw;
+    background: rgba(255,255,255,0.07);
+    border-left: 0.7cqw solid #34e0d0;
+    border-radius: 0 2cqw 2cqw 0;
+    padding: 2.6cqw 3cqw;
+    margin-top: 4cqw;
+  }
+  .datachip .ic { flex: 0 0 auto; width: 6cqw; height: 6cqw; display: grid; place-items: center;
+    background: rgba(52,224,208,0.18); border-radius: 50%; }
+  .datachip .ic svg { width: 3.4cqw; height: 3.4cqw; stroke: #34e0d0; }
+  .datachip p { font-size: 2.7cqw; line-height: 1.35; color: #dff6fa; }
+  .datachip strong { color: #ffffff; font-weight: 600; }
+
+  .footer { margin-top: auto; padding-top: 5cqw; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
+
+  /* CTA como boton, no como URL suelta */
+  .cta {
+    display: inline-flex; align-items: center; gap: 2cqw;
+    background: #34e0d0; color: #05202f;
+    font-weight: 600; font-size: 3cqw;
+    padding: 2.6cqw 4cqw; border-radius: 100px;
+    box-shadow: 0 1cqw 3cqw rgba(52,224,208,0.28);
+  }
+  .cta svg { width: 3.4cqw; height: 3.4cqw; }
+
+  /* Lockup de marca (placeholder) */
+  .brand { text-align: right; }
+  .brand .logo { display: inline-flex; align-items: center; gap: 1.6cqw; justify-content: flex-end; }
+  .brand .mark { width: 5cqw; height: 5cqw; display: grid; place-items: center;
+    background: rgba(255,255,255,0.12); border-radius: 1.4cqw; }
+  .brand .mark svg { width: 3cqw; height: 3cqw; }
+  .brand .name { font-family: 'Anton', sans-serif; font-size: 3cqw; letter-spacing: 0.1cqw; color: #eafcff; }
+  .brand .note { font-size: 1.7cqw; color: rgba(234,252,255,0.5); margin-top: 1cqw; font-style: italic; }
+</style>
+
+<div class="stage">
+  <div class="poster">
+
+    <svg class="ripples" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="18" />
+      <circle cx="50" cy="50" r="28" />
+      <circle cx="50" cy="50" r="38" />
+      <circle cx="50" cy="50" r="48" />
+    </svg>
+
+    <svg class="wave" viewBox="0 0 1080 60" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 30 Q 135 6 270 30 T 540 30 T 810 30 T 1080 30" fill="none" stroke="#34e0d0" stroke-width="2.5"/>
+    </svg>
+
+    <div class="content">
+
+      <span class="eyebrow">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s7 8 7 13a7 7 0 1 1-14 0c0-5 7-13 7-13z"/></svg>
+        Programa Emergente de Calidad del Agua
+      </span>
+
+      <h1 class="headline">Cada gota<br><span class="accent">cuenta.</span></h1>
+
+      <p class="lede">Cerr&aacute; la llave mientras te cepill&aacute;s y report&aacute; las fugas de tu colonia. El cuidado empieza en casa.</p>
+
+      <div class="datachip">
+        <span class="ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2v6M12 22a7 7 0 0 0 7-7c0-4-7-9-7-9s-7 5-7 9a7 7 0 0 0 7 7z"/></svg>
+        </span>
+        <p>Una fuga de <strong>un goteo por segundo</strong> desperdicia hasta <strong>30 litros al d&iacute;a</strong>.</p>
+      </div>
+
+      <div class="footer">
+        <span class="cta">
+          Reportar fuga
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+
+        <div class="brand">
+          <span class="logo">
+            <span class="mark"><svg viewBox="0 0 24 24" fill="#eafcff"><path d="M12 2s7 8 7 13a7 7 0 1 1-14 0c0-5 7-13 7-13z"/></svg></span>
+            <span class="name">AGUA GDL</span>
+          </span>
+          <div class="note">identidad placeholder &mdash; demo</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
