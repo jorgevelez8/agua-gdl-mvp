@@ -1,9 +1,12 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { CAMPOS_IA, esCampoIAId } from "@/lib/camposAsistidos";
-
-const MODELO = process.env.COPY_MODEL || "claude-haiku-4-5-20251001";
-const TIMEOUT_MS = 20_000;
+import {
+  crearClienteGroq,
+  FORMATO_RESPUESTA_REFINAMIENTO,
+  MODELO_COPY,
+  parsearRespuestaJson,
+  type RespuestaRefinamiento,
+} from "@/lib/groqCopy";
 
 const SYSTEM_PROMPT = `Eres un copiloto editorial para una herramienta de creación de campañas. Tu tarea es mejorar UN SOLO campo del formulario a partir de dos fuentes: el valor que ya escribió la persona y su lluvia de ideas.
 
@@ -55,9 +58,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    console.error("[refinar-campo] ANTHROPIC_API_KEY no está configurada.");
+    console.error("[refinar-campo] GROQ_API_KEY no está configurada.");
     return NextResponse.json(
       { error: "La asistencia de IA no está configurada en este entorno." },
       { status: 503 }
@@ -84,36 +87,27 @@ ${lluviaIdeas.trim()}
 Genera la propuesta final combinando únicamente la información útil de ambas fuentes.`;
 
   try {
-    const anthropic = new Anthropic({
-      apiKey,
-      maxRetries: 0,
-      timeout: TIMEOUT_MS,
+    const groq = crearClienteGroq(apiKey);
+    const respuesta = await groq.chat.completions.create({
+      model: MODELO_COPY,
+      max_completion_tokens: 700,
+      reasoning_effort: "low",
+      response_format: FORMATO_RESPUESTA_REFINAMIENTO,
+      messages: [
+        { role: "system", content: `${SYSTEM_PROMPT}\n\n${instruccionesCampo}` },
+        { role: "user", content: promptUsuario },
+      ],
     });
-    const respuesta = await anthropic.messages.create({
-      model: MODELO,
-      max_tokens: 700,
-      system: `${SYSTEM_PROMPT}\n\n${instruccionesCampo}`,
-      messages: [{ role: "user", content: promptUsuario }],
-    });
-    const bloqueTexto = respuesta.content.find((bloque) => bloque.type === "text");
-
-    if (!bloqueTexto || bloqueTexto.type !== "text") {
-      throw new Error("La respuesta no incluyó texto.");
-    }
-
-    const coincidencia = bloqueTexto.text.match(/\{[\s\S]*\}/);
-    if (!coincidencia) {
-      throw new Error("La respuesta no incluyó JSON válido.");
-    }
-
-    const datos = JSON.parse(coincidencia[0]) as { propuesta?: unknown };
+    const datos = parsearRespuestaJson<RespuestaRefinamiento>(
+      respuesta.choices[0]?.message.content
+    );
     if (typeof datos.propuesta !== "string" || !datos.propuesta.trim()) {
       throw new Error("La respuesta no incluyó una propuesta válida.");
     }
 
     return NextResponse.json({ propuesta: datos.propuesta.trim() });
   } catch (error) {
-    console.error("Error refinando campo con Claude:", error);
+    console.error("Error refinando campo con Groq:", error);
     return NextResponse.json(
       { error: "No se pudo mejorar este campo. Intenta de nuevo." },
       { status: 502 }

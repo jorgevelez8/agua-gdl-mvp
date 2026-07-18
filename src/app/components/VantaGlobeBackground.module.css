@@ -9,6 +9,10 @@
 
 .background canvas {
   opacity: var(--background-effect-opacity);
+  filter:
+    contrast(1.25)
+    drop-shadow(0 0 1px var(--color-background-effect))
+    drop-shadow(0 0 3px var(--color-background-effect-shadow));
 }
 
 @media (prefers-reduced-motion: reduce) {

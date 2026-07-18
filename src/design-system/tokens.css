@@ -30,7 +30,9 @@
   /* Glow ambiental detrás del contenido protagonista — mismo acento a muy
      baja opacidad, NO cuenta como un segundo color (DESIGN.md §5.3). */
   --color-accent-glow: rgba(13, 104, 250, 0.14);
-  --background-effect-opacity: 0.34;
+  --color-background-effect: #001d3d;
+  --color-background-effect-shadow: rgba(0, 29, 61, 0.48);
+  --background-effect-opacity: 0.82;
   --color-on-accent: #ffffff;
   --color-overlay: rgba(20, 24, 31, 0.48);
 
