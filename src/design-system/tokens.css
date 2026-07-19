@@ -11,13 +11,14 @@
      puro — DESIGN.md pide "aire" (Apple) sin caer en el default gris.
      El fondo es un gradiente muy suave, no un plano (DESIGN.md §3). */
   --color-bg: #fafafa;
-  --bg-gradient: linear-gradient(180deg, #fafafa 0%, #f4f7fc 100%);
+  --color-bg-soft: #f4f7fc;
+  --bg-gradient: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-soft) 100%);
   --color-surface: #ffffff;
   --color-border: #e3e8f0;
 
   --color-text: #14181f;
   --color-text-soft: #565f6d;
-  --color-text-muted: #8991a1;
+  --color-text-muted: #667085;
 
   /* Acento: tomado directo del azul de public/brand/logo.png (muestreado
      en la punta del chevron, rgb(13,104,250)) — es EL único color
@@ -29,6 +30,13 @@
   /* Glow ambiental detrás del contenido protagonista — mismo acento a muy
      baja opacidad, NO cuenta como un segundo color (DESIGN.md §5.3). */
   --color-accent-glow: rgba(13, 104, 250, 0.14);
+  --color-background-effect: #001d3d;
+  --color-background-effect-shadow: rgba(0, 29, 61, 0.48);
+  --background-effect-opacity: 0.82;
+  --color-on-accent: #ffffff;
+  --color-overlay: rgba(20, 24, 31, 0.48);
+  --color-inverse-surface: #30343b;
+  --color-inverse-on-surface: #ffffff;
 
   /* Semántico — no cuenta como "el acento", uso exclusivo de error. */
   --color-danger: #c0342f;
@@ -58,6 +66,7 @@
      discreto de la versión formulario. */
   --radius: 20px;
   --shadow: 0 1px 2px rgba(20, 24, 31, 0.04), 0 8px 24px rgba(20, 24, 31, 0.06);
+  --tooltip-max-width: 280px;
 
   --font-ui: var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif;
 }

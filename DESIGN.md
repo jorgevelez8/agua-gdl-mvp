@@ -101,7 +101,7 @@ Estas son falsables: se pueden revisar en el código y en el render.
 
 > Dejarlo escrito para no pedirlo ni prometerlo más adelante por error.
 
-- **No puede existir vista previa en vivo de las piezas mientras el usuario escribe.** Cada generación llama a la API de Claude y renderiza con Satori — tarda segundos reales y consume tokens de verdad. No hay forma de mostrar un preview "en caliente" a medida que se tipea sin disparar esa llamada.
+- **No puede existir vista previa en vivo de las piezas mientras el usuario escribe.** Cada generación llama a Groq/GPT-OSS 120B y renderiza con Satori — tarda segundos reales y consume cuota de tokens. No hay forma de mostrar un preview "en caliente" a medida que se tipea sin disparar esa llamada.
 - Lo máximo posible mientras se genera es mostrar el **frame vacío de cada formato** (post 1:1, story 9:16, banner 1200×628) — que es exactamente lo que ya hacen los placeholders del estado de carga. No se agrega nada más ambicioso que eso.
 
 ---
